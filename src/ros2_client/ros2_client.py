@@ -1529,4 +1529,196 @@ class ROS2ClientLibrary:
             logger.error(f"Failed to shutdown process {process_name}: {e}")
             return False
 
+    # ============================================================================
+    # TRANSFORM OPERATIONS
+    # ============================================================================
+    
+    @keyword
+    def get_transform(self, source_frame: str, target_frame: str, duration: float = 5.0, timeout: Optional[float] = None) -> List[Dict[str, Any]]:
+        """
+        Get transform data between two frames using tf2_echo.
+        
+        Args:
+            source_frame: Source frame name (e.g., 'map')
+            target_frame: Target frame name (e.g., 'base_link')
+            duration: Duration in seconds to capture transform data
+            timeout: Override default timeout for this operation
+            
+        Returns:
+            List of dictionaries containing parsed transform data
+            
+        Example:
+            | ${transforms}= | Get Transform | map | base_link | duration=10.0 |
+            | Should Not Be Empty | ${transforms} |
+            | ${first_transform}= | Get From List | ${transforms} | 0 |
+            | Should Be Equal | ${first_transform}[source_frame] | map |
+            | Should Be Equal | ${first_transform}[target_frame] | base_link |
+        """
+        command = ['run', 'tf2_ros', 'tf2_echo', source_frame, target_frame]
+        full_command = [self._ros2_executable] + command
+        timeout_value = timeout or self.timeout
+        
+        logger.info(f"Getting transform from '{source_frame}' to '{target_frame}' for {duration}s")
+        logger.info(f"Running command: {' '.join(full_command)}")
+        
+        try:
+            # Start the tf2_echo process
+            process = subprocess.Popen(
+                full_command,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                bufsize=1,  # Line buffered
+                universal_newlines=True
+            )
+            
+            logger.info(f"Started tf2_echo process with PID: {process.pid}")
+            
+            # Collect output for the specified duration
+            start_time = time.time()
+            output_lines = []
+            
+            while time.time() - start_time < duration:
+                try:
+                    # Read line with timeout
+                    line = process.stdout.readline()
+                    if line:
+                        output_lines.append(line.strip())
+                        logger.debug(f"Received line: {line.strip()}")
+                    else:
+                        # No more output, check if process is still running
+                        if process.poll() is not None:
+                            logger.info("tf2_echo process terminated")
+                            break
+                        time.sleep(0.1)  # Small delay to prevent busy waiting
+                except Exception as e:
+                    logger.warn(f"Error reading from process: {e}")
+                    break
+            
+            # Terminate the process
+            try:
+                process.terminate()
+                process.wait(timeout=2.0)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait()
+            
+            logger.info(f"Collected {len(output_lines)} lines of output")
+            
+            # Parse the output
+            transforms = self._parse_tf2_echo_output(output_lines, source_frame, target_frame)
+            logger.info(f"Parsed {len(transforms)} transform messages")
+            
+            return transforms
+            
+        except Exception as e:
+            logger.error(f"Failed to get transform from '{source_frame}' to '{target_frame}': {e}")
+            raise
+    
+    def _parse_tf2_echo_output(self, output_lines: List[str], source_frame: str, target_frame: str) -> List[Dict[str, Any]]:
+        """
+        Parse tf2_echo output into structured transform data.
+        
+        Args:
+            output_lines: List of output lines from tf2_echo
+            source_frame: Source frame name
+            target_frame: Target frame name
+            
+        Returns:
+            List of parsed transform dictionaries
+        """
+        transforms = []
+        current_transform = None
+        
+        for line in output_lines:
+            line = line.strip()
+            
+            # Check for timestamp line
+            if line.startswith('At time'):
+                # Save previous transform if exists
+                if current_transform:
+                    transforms.append(current_transform)
+                
+                # Start new transform
+                current_transform = {
+                    'source_frame': source_frame,
+                    'target_frame': target_frame,
+                    'timestamp': self._parse_timestamp(line),
+                    'translation': None,
+                    'rotation_quaternion': None,
+                    'rotation_rpy_rad': None,
+                    'rotation_rpy_deg': None,
+                    'matrix': None
+                }
+            
+            # Parse translation
+            elif line.startswith('- Translation:'):
+                current_transform['translation'] = self._parse_translation(line)
+            
+            # Parse quaternion rotation
+            elif line.startswith('- Rotation: in Quaternion (xyzw)'):
+                current_transform['rotation_quaternion'] = self._parse_quaternion(line)
+            
+            # Parse RPY rotation in radians
+            elif line.startswith('- Rotation: in RPY (radian)'):
+                current_transform['rotation_rpy_rad'] = self._parse_rpy(line)
+            
+            # Parse RPY rotation in degrees
+            elif line.startswith('- Rotation: in RPY (degree)'):
+                current_transform['rotation_rpy_deg'] = self._parse_rpy(line)
+            
+            # Parse matrix (first line)
+            elif line.startswith('- Matrix:') and current_transform:
+                # Matrix parsing will be handled in the next lines
+                current_transform['matrix'] = []
+        
+        # Add the last transform if exists
+        if current_transform:
+            transforms.append(current_transform)
+        
+        return transforms
+    
+    def _parse_timestamp(self, line: str) -> float:
+        """Parse timestamp from 'At time X.XXXXXXXXXX' format."""
+        try:
+            # Extract timestamp from "At time 180.300000000"
+            timestamp_str = line.split('At time')[1].strip()
+            return float(timestamp_str)
+        except (IndexError, ValueError):
+            logger.warn(f"Failed to parse timestamp from line: {line}")
+            return 0.0
+    
+    def _parse_translation(self, line: str) -> Dict[str, float]:
+        """Parse translation from '[-2.001, -0.500, 0.000]' format."""
+        try:
+            # Extract values from "- Translation: [-2.001, -0.500, 0.000]"
+            values_str = line.split('[')[1].split(']')[0]
+            values = [float(x.strip()) for x in values_str.split(',')]
+            return {'x': values[0], 'y': values[1], 'z': values[2]}
+        except (IndexError, ValueError):
+            logger.warn(f"Failed to parse translation from line: {line}")
+            return {'x': 0.0, 'y': 0.0, 'z': 0.0}
+    
+    def _parse_quaternion(self, line: str) -> Dict[str, float]:
+        """Parse quaternion from '[-0.000, -0.003, -0.000, 1.000]' format."""
+        try:
+            # Extract values from "- Rotation: in Quaternion (xyzw) [-0.000, -0.003, -0.000, 1.000]"
+            values_str = line.split('[')[1].split(']')[0]
+            values = [float(x.strip()) for x in values_str.split(',')]
+            return {'x': values[0], 'y': values[1], 'z': values[2], 'w': values[3]}
+        except (IndexError, ValueError):
+            logger.warn(f"Failed to parse quaternion from line: {line}")
+            return {'x': 0.0, 'y': 0.0, 'z': 0.0, 'w': 1.0}
+    
+    def _parse_rpy(self, line: str) -> Dict[str, float]:
+        """Parse RPY from '[-0.000, -0.006, -0.000]' format."""
+        try:
+            # Extract values from "- Rotation: in RPY (radian) [-0.000, -0.006, -0.000]"
+            values_str = line.split('[')[1].split(']')[0]
+            values = [float(x.strip()) for x in values_str.split(',')]
+            return {'roll': values[0], 'pitch': values[1], 'yaw': values[2]}
+        except (IndexError, ValueError):
+            logger.warn(f"Failed to parse RPY from line: {line}")
+            return {'roll': 0.0, 'pitch': 0.0, 'yaw': 0.0}
+
     
