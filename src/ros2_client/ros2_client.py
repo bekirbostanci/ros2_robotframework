@@ -1487,3 +1487,46 @@ class ROS2ClientLibrary:
         except Exception as e:
             logger.error(f"Failed to kill ROS2 processes: {e}")
             return False
+
+    @keyword
+    def shutdown_process(self, process_name: str, force: bool = False) -> bool:
+        """
+        Shutdown a process by name.
+        
+        Args:
+            process_name: Name of the process to shutdown
+            force: If True, use SIGKILL instead of SIGTERM
+            
+        Returns:
+            True if process was terminated successfully
+
+        Example:
+            | ${shutdown}= | Shutdown Process | ros2 |
+            | Should Be True | ${shutdown} |
+        """
+        try:
+            logger.info(f"Shutting down process: {process_name}")
+            
+            # Find processes by name
+            result = subprocess.run(
+                ['pgrep', '-f', process_name],
+                capture_output=True,
+                text=True,
+                timeout=5.0
+            )
+            
+            if result.returncode == 0:
+                pids = result.stdout.strip().split('\n')
+                for pid in pids:
+                    if pid.strip():
+                        os.kill(int(pid.strip()), 9 if force else 15)
+                        logger.info(f"Terminated process {pid.strip()}")
+            
+            logger.info(f"Process {process_name} shutdown completed")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to shutdown process {process_name}: {e}")
+            return False
+
+    
