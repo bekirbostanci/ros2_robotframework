@@ -17,6 +17,7 @@ ${GOAL_THETA}        1.57
 Test Navigation2 Simple Movement
     [Documentation]    Launch Navigation2 simulation, wait 5 seconds, send vehicle to another place
     [Tags]    nav2    simple    movement
+    [Teardown]    Clean Up Navigation2 Simulation
     
     # Set environment variables for the test
     Set Environment Variable    TURTLEBOT3_MODEL      waffle
@@ -32,34 +33,20 @@ Test Navigation2 Simple Movement
     
     # Send vehicle to another place
     Log    Sending vehicle to position (${GOAL_X}, ${GOAL_Y}, ${GOAL_THETA})...
-    ${nav_success}=    Navigate To Pose Simple    ${GOAL_X}    ${GOAL_Y}    ${GOAL_THETA}
+    ${nav_success}=    Navigate To Pose Simple    ${GOAL_X}    ${GOAL_Y}    ${GOAL_THETA}    timeout=5.0
     Log    Navigation command sent: ${nav_success}
-    
-    # Get final position
-    FOR    ${i}    IN RANGE    ${WAIT_TIME_FOR_FINAL_POSE}
-        ${final_pose}=    Get Current Pose
-        IF    ${final_pose} is not None
-            Log    Final position: x=${final_pose.x}, y=${final_pose.y}, theta=${final_pose.theta}
-            Exit For Loop
-        ELSE
-            Log    Could not get final position, retrying in 1 second...
-            Sleep    1.0
-        END
-    END
-    
-    # Stop the launch process
-    Log    Stopping Navigation2 simulation launch...
-    ${terminated}=    Terminate Launch Process    ${process}
-    Should Be True    ${terminated}    Launch process should be terminated successfully
-    
-    # Verify the process is no longer running
-    ${stopped}=    Is Process Running    ${process}
-    Should Not Be True    ${stopped}    Launch process should be stopped
-    
-    # Shutdown Gazebo to clean up any remaining processes
-    Log    Shutting down Gazebo...
-    ${gazebo_shutdown}=    Shutdown Gazebo
-    Should Be True    ${gazebo_shutdown}
-    Log    Gazebo shutdown completed
-    
-    Log    Navigation2 simple movement test completed successfully
+
+    ${final_pose}=   Get Transform    map    base_link
+    Log    Final position: ${final_pose}
+
+   
+
+*** Keywords ***
+Clean Up Navigation2 Simulation
+    [Documentation]    Clean up Navigation2 simulation
+    ${shutdown}=    Shutdown Process    ign gazebo
+    Should Be True    ${shutdown}
+    Log    Navigation2 simulation cleanup completed
+
+    ${shutdown}=    Shutdown Process    ros_gz_bridge
+    Should Be True    ${shutdown}
