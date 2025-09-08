@@ -236,15 +236,17 @@ class Nav2ClientLibrary:
         x: float, 
         y: float, 
         theta: float, 
+        frame_id: str = "map",
         timeout: Optional[float] = None
     ) -> bool:
         """
-        Simple navigation to a pose - just sends the command without waiting for completion.
+        Simple navigation to a pose using Navigation2 action server.
         
         Args:
             x: X coordinate in meters
             y: Y coordinate in meters
             theta: Orientation in radians
+            frame_id: Reference frame (default: "map")
             timeout: Override default timeout
             
         Returns:
@@ -254,30 +256,50 @@ class Nav2ClientLibrary:
             | ${success}= | Navigate To Pose Simple | 2.0 | 1.0 | 1.57 |
             | Should Be True | ${success} |
         """
-        logger.info(f"Simple navigation to pose: x={x}, y={y}, theta={theta}")
+        logger.info(f"Simple navigation to pose: x={x}, y={y}, theta={theta} (frame: {frame_id})")
+        
+        # Validate input parameters
+        if not isinstance(x, (int, float)) or not isinstance(y, (int, float)) or not isinstance(theta, (int, float)):
+            logger.error("Invalid pose parameters: x, y, and theta must be numbers")
+            return False
+        
+        if not isinstance(frame_id, str) or not frame_id.strip():
+            logger.error("Invalid frame_id: must be a non-empty string")
+            return False
         
         try:
-            # Use a very simple approach - just publish to goal_pose topic
+            # Use Navigation2 action server for simple navigation
             z_quat = math.sin(theta/2)
             w_quat = math.cos(theta/2)
             
-            # Simple YAML format for goal_pose topic
-            goal_data = f"header:\n  frame_id: 'map'\n  stamp:\n    sec: 0\n    nanosec: 0\npose:\n  position:\n    x: {x}\n    y: {y}\n    z: 0.0\n  orientation:\n    x: 0.0\n    y: 0.0\n    z: {z_quat}\n    w: {w_quat}"
+            # Get current timestamp
+            current_time = int(time.time())
             
+            # Proper YAML format for Navigation2 action goal
+            goal_data = f"pose:\n  header:\n    frame_id: '{frame_id}'\n    stamp:\n      sec: {current_time}\n      nanosec: 0\n  pose:\n    position:\n      x: {x}\n      y: {y}\n      z: 0.0\n    orientation:\n      x: 0.0\n      y: 0.0\n      z: {z_quat}\n      w: {w_quat}"
+            
+            logger.debug(f"Sending navigation goal data: {goal_data}")
+            
+            # Use action send_goal instead of topic pub
             result = self._run_ros2_command(
-                ['topic', 'pub', '--once', '/goal_pose', 'geometry_msgs/msg/PoseStamped', goal_data],
+                ['action', 'send_goal', '/navigate_to_pose', 'nav2_msgs/action/NavigateToPose', goal_data],
                 timeout=timeout
             )
             
             if result.returncode == 0:
-                logger.info("Navigation goal sent successfully")
+                logger.info("Navigation goal sent successfully via action server")
                 self._navigation_active = True
                 self._goal_pose = Pose(x, y, theta)
                 return True
             else:
                 logger.error(f"Failed to send navigation goal: {result.stderr}")
+                if result.stdout:
+                    logger.debug(f"Command stdout: {result.stdout}")
                 return False
                 
+        except subprocess.TimeoutExpired:
+            logger.error("Navigation goal command timed out")
+            return False
         except Exception as e:
             logger.error(f"Error sending navigation goal: {e}")
             return False
