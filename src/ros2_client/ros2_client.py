@@ -1534,7 +1534,7 @@ class ROS2ClientLibrary:
     # ============================================================================
     
     @keyword
-    def get_transform(self, source_frame: str, target_frame: str, duration: float = 5.0, timeout: Optional[float] = None) -> List[Dict[str, Any]]:
+    def get_transform(self, source_frame: str, target_frame: str, duration: float = 5.0, timeout: Optional[float] = None) -> Dict[str, Any]:
         """
         Get transform data between two frames using tf2_echo.
         
@@ -1607,14 +1607,74 @@ class ROS2ClientLibrary:
             
             # Parse the output
             transforms = self._parse_tf2_echo_output(output_lines, source_frame, target_frame)
-            logger.info(f"Parsed {len(transforms)} transform messages")
-            
-            return transforms
+            return transforms[0]
             
         except Exception as e:
             logger.error(f"Failed to get transform from '{source_frame}' to '{target_frame}': {e}")
             raise
     
+    @keyword
+    def is_within_tolerance(
+        self,
+        transform_data: dict[str, object],
+        tolerance: float,
+        target_x: float,
+        target_y: float,
+        target_z: float = 0.0,
+    ) -> bool:
+        """
+        Check if a position (from transform data) is within a given tolerance of a target point.
+
+        Args:
+            transform_data: Transform data dictionary from get_transform method.
+            target_x: Target X coordinate.
+            target_y: Target Y coordinate.
+            target_z: Target Z coordinate (default: 0.0).
+            tolerance: Maximum allowed distance from target.
+
+        Returns:
+            True if position is within tolerance of target, False otherwise.
+
+        Example:
+            | ${transform}= | Get Transform | map | base_link | duration=1.0 |
+            | ${within}= | Is Within Tolerance | ${transform} | 2.0 | 3.0 | 0.0 | 0.5 |
+            | Should Be True | ${within} |
+        """
+        try:
+            if "translation" not in transform_data:
+                raise ValueError("Transform data must contain 'translation' field")
+
+            current_pos = transform_data["translation"]
+            current_x = current_pos["x"]
+            current_y = current_pos["y"]
+            current_z = current_pos.get("z", 0.0)
+
+            from math import sqrt
+
+            distance = sqrt(
+                (target_x - current_x) ** 2
+                + (target_y - current_y) ** 2
+                + (target_z - current_z) ** 2
+            )
+
+            within = distance <= tolerance
+
+            logger.info(
+                f"Position tolerance check: within={within}, distance={distance:.3f}m, tolerance={tolerance}m"
+            )
+            logger.info(
+                f"Current position: ({current_x:.3f}, {current_y:.3f}, {current_z:.3f})"
+            )
+            logger.info(
+                f"Target position: ({target_x:.3f}, {target_y:.3f}, {target_z:.3f})"
+            )
+
+            return within
+
+        except Exception as e:
+            logger.error(f"Failed to check position tolerance: {e}")
+            raise
+
     def _parse_tf2_echo_output(self, output_lines: List[str], source_frame: str, target_frame: str) -> List[Dict[str, Any]]:
         """
         Parse tf2_echo output into structured transform data.
@@ -1720,5 +1780,3 @@ class ROS2ClientLibrary:
         except (IndexError, ValueError):
             logger.warn(f"Failed to parse RPY from line: {line}")
             return {'roll': 0.0, 'pitch': 0.0, 'yaw': 0.0}
-
-    
