@@ -6,12 +6,12 @@ Library          Collections
 Library          OperatingSystem
 
 *** Variables ***
-${LAUNCH_TIMEOUT}    10.0
 ${WAIT_TIME}         5s
 ${WAIT_TIME_FOR_FINAL_POSE}    30
-${GOAL_X}            2.0
+${GOAL_X}            -1.7
 ${GOAL_Y}            1.0
 ${GOAL_THETA}        1.57
+${TOLERANCE}         0.5
 
 *** Test Cases ***
 Test Navigation2 Simple Movement
@@ -33,13 +33,16 @@ Test Navigation2 Simple Movement
     
     # Send vehicle to another place
     Log    Sending vehicle to position (${GOAL_X}, ${GOAL_Y}, ${GOAL_THETA})...
-    ${nav_success}=    Navigate To Pose Simple    ${GOAL_X}    ${GOAL_Y}    ${GOAL_THETA}    timeout=5.0
+    ${nav_success}=    Navigate To Pose Simple    ${GOAL_X}    ${GOAL_Y}    ${GOAL_THETA}    timeout=${WAIT_TIME_FOR_FINAL_POSE}
     Log    Navigation command sent: ${nav_success}
-
+    
+    # Get robot pose
     ${final_pose}=   Get Transform    map    base_link
     Log    Final position: ${final_pose}
 
-   
+    # Check if robot is within tolerance
+    ${arrived}=    Is Within Tolerance    ${final_pose}    tolerance=${TOLERANCE}    target_x=${GOAL_X}    target_y=${GOAL_Y}
+    Should Be True    ${arrived}
 
 *** Keywords ***
 Clean Up Navigation2 Simulation
