@@ -368,6 +368,58 @@ class Nav2NativeClient(Nav2BaseClient):
                 message=f"Native navigation error: {e}"
             )
     
+    def send_navigation_goal_only(
+        self, 
+        x: float, 
+        y: float, 
+        theta: float, 
+        frame_id: str = "map",
+        timeout: Optional[float] = None
+    ) -> bool:
+        """
+        Send navigation goal without waiting for completion.
+        
+        Args:
+            x: X coordinate in meters
+            y: Y coordinate in meters
+            theta: Orientation in radians
+            frame_id: Reference frame (default: "map")
+            timeout: Override default timeout
+            
+        Returns:
+            True if goal was sent successfully
+        """
+        self._ensure_initialized()
+        
+        goal_pose = Pose(x, y, theta)
+        self._goal_pose = goal_pose
+        self._navigation_active = True
+        
+        logger.info(f"Sending navigation goal to pose: x={x}, y={y}, theta={theta} (frame: {frame_id})")
+        
+        try:
+            # Wait for action server
+            if not self._navigate_to_pose_action_client.wait_for_server(timeout_sec=5.0):
+                logger.error("NavigateToPose action server not available")
+                self._navigation_active = False
+                return False
+            
+            # Create goal
+            goal_msg = NavigateToPose.Goal()
+            goal_msg.pose = self._create_pose_stamped(x, y, theta, frame_id)
+            
+            # Send goal without waiting for acceptance or completion
+            future = self._navigate_to_pose_action_client.send_goal_async(goal_msg)
+            
+            # Just return True - the goal is sent, we don't wait for anything
+            logger.info(f"Navigation goal sent to ({x}, {y}, {theta}) in frame {frame_id}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to send navigation goal: {e}")
+            self._navigation_active = False
+            return False
+
     @keyword
     def navigate_through_poses_native(
         self, 

@@ -3,6 +3,7 @@ Main Navigation2 client that combines CLI and native operations
 """
 
 import time
+import asyncio
 from typing import List, Dict, Any, Optional, Union
 from robot.api.deco import keyword
 from robot.api import logger
@@ -51,51 +52,14 @@ class Nav2ClientLibrary(Nav2BaseClient):
     # ============================================================================
     # NAVIGATION OPERATIONS (Smart Selection)
     # ============================================================================
-    
     @keyword
-    def navigate_to_pose(
+    async def navigate_to_pose_simple(
         self, 
         x: float, 
         y: float, 
         theta: float, 
         frame_id: str = "map",
         timeout: Optional[float] = None,
-        use_native: Optional[bool] = None
-    ) -> NavigationResult:
-        """
-        Navigate to a specific pose using Navigation2.
-        
-        Args:
-            x: X coordinate in meters
-            y: Y coordinate in meters
-            theta: Orientation in radians
-            frame_id: Reference frame (default: "map")
-            timeout: Override default action timeout
-            use_native: Override default native preference
-            
-        Returns:
-            NavigationResult object with success status and details
-            
-        Example:
-            | ${result}= | Navigate To Pose | 2.0 | 1.0 | 1.57 |
-            | Should Be True | ${result.success} |
-        """
-        use_native = use_native if use_native is not None else self.use_native
-        
-        if use_native and self.native_client:
-            return self.native_client.navigate_to_pose_native(x, y, theta, frame_id, timeout)
-        else:
-            return self.cli_client.navigate_to_pose(x, y, theta, frame_id, timeout)
-    
-    @keyword
-    def navigate_to_pose_simple(
-        self, 
-        x: float, 
-        y: float, 
-        theta: float, 
-        frame_id: str = "map",
-        timeout: Optional[float] = None,
-        use_native: Optional[bool] = None
     ) -> bool:
         """
         Simple navigation to a pose using Navigation2 action server.
@@ -115,15 +79,38 @@ class Nav2ClientLibrary(Nav2BaseClient):
             | ${success}= | Navigate To Pose Simple | 2.0 | 1.0 | 1.57 |
             | Should Be True | ${success} |
         """
-        use_native = use_native if use_native is not None else self.use_native
-        
-        if use_native and self.native_client:
-            # For native client, we use the full navigation method
-            result = self.native_client.navigate_to_pose_native(x, y, theta, frame_id, timeout)
-            return result.success
-        else:
-            return self.cli_client.navigate_to_pose_simple(x, y, theta, frame_id, timeout)
+        # For native client, we use the full navigation method
+        result = self.native_client.navigate_to_pose_native(x, y, theta, frame_id, timeout)
+        return result.success
     
+    async def async_navigate_to_pose_simple(
+        self, 
+        x: float, 
+        y: float, 
+        theta: float, 
+        frame_id: str = "map", 
+        timeout: Optional[float] = None,
+    ):
+        # Don't wait for the result, just send the goal and return immediately
+        asyncio.create_task(self._send_navigation_goal_async(x, y, theta, frame_id, timeout))
+    
+    async def _send_navigation_goal_async(
+        self, 
+        x: float, 
+        y: float, 
+        theta: float, 
+        frame_id: str = "map", 
+        timeout: Optional[float] = None,
+    ):
+        """Send navigation goal without waiting for completion"""
+        try:
+            # Use the new non-blocking method
+            success = self.native_client.send_navigation_goal_only(x, y, theta, frame_id, timeout)
+            if not success:
+                logger.error("Failed to send navigation goal")
+        except Exception as e:
+            logger.error(f"Failed to send navigation goal: {e}")
+
     @keyword
     def navigate_through_poses(
         self, 
