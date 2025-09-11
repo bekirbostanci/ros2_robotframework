@@ -113,168 +113,6 @@ class Nav2CLIClient(Nav2BaseClient):
             )
     
     @keyword
-    def navigate_to_pose_simple(
-        self, 
-        x: float, 
-        y: float, 
-        theta: float, 
-        frame_id: str = "map",
-        timeout: Optional[float] = None
-    ) -> bool:
-        """
-        Simple navigation to a pose using Navigation2 action server.
-        
-        Args:
-            x: X coordinate in meters
-            y: Y coordinate in meters
-            theta: Orientation in radians
-            frame_id: Reference frame (default: "map")
-            timeout: Override default timeout
-            
-        Returns:
-            True if navigation command was sent successfully
-            
-        Example:
-            | ${success}= | Navigate To Pose Simple | 2.0 | 1.0 | 1.57 |
-            | Should Be True | ${success} |
-        """
-        logger.info(f"Simple navigation to pose: x={x}, y={y}, theta={theta} (frame: {frame_id})")
-        
-        # Validate input parameters
-        if not isinstance(x, (int, float)) or not isinstance(y, (int, float)) or not isinstance(theta, (int, float)):
-            logger.error("Invalid pose parameters: x, y, and theta must be numbers")
-            return False
-        
-        if not isinstance(frame_id, str) or not frame_id.strip():
-            logger.error("Invalid frame_id: must be a non-empty string")
-            return False
-        
-        try:
-            # Use Navigation2 action server for simple navigation
-            z_quat = math.sin(theta/2)
-            w_quat = math.cos(theta/2)
-            
-            # Get current timestamp
-            current_time = int(time.time())
-            
-            # Proper YAML format for Navigation2 action goal
-            goal_data = f"pose:\n  header:\n    frame_id: '{frame_id}'\n    stamp:\n      sec: {current_time}\n      nanosec: 0\n  pose:\n    position:\n      x: {x}\n      y: {y}\n      z: 0.0\n    orientation:\n      x: 0.0\n      y: 0.0\n      z: {z_quat}\n      w: {w_quat}"
-            
-            logger.debug(f"Sending navigation goal data: {goal_data}")
-            
-            # Use action send_goal instead of topic pub
-            result = self._run_ros2_command(
-                ['action', 'send_goal', '/navigate_to_pose', 'nav2_msgs/action/NavigateToPose', goal_data],
-                timeout=timeout
-            )
-            
-            if result.returncode == 0:
-                logger.info("Navigation goal sent successfully via action server")
-                self._navigation_active = True
-                self._goal_pose = Pose(x, y, theta)
-                return True
-            else:
-                logger.error(f"Failed to send navigation goal: {result.stderr}")
-                if result.stdout:
-                    logger.debug(f"Command stdout: {result.stdout}")
-                return False
-                
-        except subprocess.TimeoutExpired:
-            logger.error("Navigation goal command timed out")
-            return False
-        except Exception as e:
-            logger.error(f"Error sending navigation goal: {e}")
-            return False
-    
-    @keyword
-    def navigate_through_poses(
-        self, 
-        poses: List[Dict[str, float]], 
-        frame_id: str = "map",
-        timeout: Optional[float] = None
-    ) -> NavigationResult:
-        """
-        Navigate through a sequence of poses using Navigation2.
-        
-        Args:
-            poses: List of pose dictionaries with 'x', 'y', 'theta' keys
-            frame_id: Reference frame (default: "map")
-            timeout: Override default action timeout
-            
-        Returns:
-            NavigationResult object with success status and details
-            
-        Example:
-            | @{poses}= | Create List | ${{'x': 1.0, 'y': 0.0, 'theta': 0.0}} | ${{'x': 2.0, 'y': 1.0, 'theta': 1.57}} |
-            | ${result}= | Navigate Through Poses | ${poses} |
-            | Should Be True | ${result.success} |
-        """
-        if not poses:
-            return NavigationResult(
-                success=False,
-                message="No poses provided for navigation"
-            )
-        
-        timeout_value = timeout or self.action_timeout
-        self._navigation_active = True
-        
-        logger.info(f"Navigating through {len(poses)} poses")
-        
-        try:
-            # Build the poses array for the service call
-            poses_data = []
-            for i, pose_dict in enumerate(poses):
-                pose = Pose.from_dict(pose_dict)
-                z_quat = math.sin(pose.theta/2)
-                w_quat = math.cos(pose.theta/2)
-                pose_str = "poses[%d]: {header: {frame_id: '%s'}, pose: {position: {x: %f, y: %f, z: 0.0}, orientation: {x: 0.0, y: 0.0, z: %f, w: %f}}}" % (i, frame_id, pose.x, pose.y, z_quat, w_quat)
-                poses_data.append(pose_str)
-            
-            request_data = ", ".join(poses_data)
-            
-            result = self._run_ros2_command(
-                ['service', 'call', '/navigate_through_poses', 'nav2_msgs/srv/NavigateThroughPoses', request_data],
-                timeout=timeout_value
-            )
-            
-            if result.returncode == 0:
-                response_text = result.stdout.strip()
-                success = "result: 4" in response_text
-                
-                if success:
-                    final_pose = Pose.from_dict(poses[-1]) if poses else None
-                    logger.info(f"Successfully navigated through {len(poses)} poses")
-                    self._current_pose = final_pose
-                    self._navigation_active = False
-                    return NavigationResult(
-                        success=True,
-                        message=f"Navigation through {len(poses)} poses completed successfully",
-                        final_pose=final_pose
-                    )
-                else:
-                    logger.warn(f"Navigation through poses failed: {response_text}")
-                    self._navigation_active = False
-                    return NavigationResult(
-                        success=False,
-                        message=f"Navigation failed: {response_text}"
-                    )
-            else:
-                logger.error(f"Navigation service call failed: {result.stderr}")
-                self._navigation_active = False
-                return NavigationResult(
-                    success=False,
-                    message=f"Service call failed: {result.stderr}"
-                )
-                
-        except Exception as e:
-            logger.error(f"Navigation error: {e}")
-            self._navigation_active = False
-            return NavigationResult(
-                success=False,
-                message=f"Navigation error: {e}"
-            )
-    
-    @keyword
     def cancel_navigation(self, timeout: Optional[float] = None) -> bool:
         """
         Cancel the current navigation operation.
@@ -757,3 +595,33 @@ class Nav2CLIClient(Nav2BaseClient):
         
         logger.info(f"Navigation status: {status}")
         return status
+
+    def call_service(self, service_name: str, service_type: str, request_data: str, timeout: Optional[float] = None) -> Dict[str, Any]:
+        """
+        Call a service.
+        
+        Args:
+            service_name: Name of the service
+            service_type: Type of the service
+            request_data: Request data for the service
+            timeout: Override default timeout
+
+        Returns:
+            Dictionary containing the service response
+            
+        Example:
+            | ${response}= | Call Service | /add_two_ints | example_interfaces/srv/AddTwoInts | "a: 5, b: 3" |
+            | Should Equal | ${response}[sum] | 8 |
+        """
+        result = self._run_ros2_command(
+            ['service', 'call', service_name, service_type, request_data],
+            timeout=timeout
+        )
+        
+        if result.returncode != 0:
+            raise RuntimeError(f"Failed to call service '{service_name}': {result.stderr}")
+        
+        # Parse the response - this is a simplified parser
+        response_text = result.stdout.strip()
+        logger.info(f"Service call response for '{service_name}': {response_text}")
+        return response_text
