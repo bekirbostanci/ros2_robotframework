@@ -3,7 +3,6 @@ Common utilities and base classes for Navigation2 Robot Framework Library
 """
 
 import subprocess
-import time
 import math
 from typing import List, Dict, Any, Optional, Union, Tuple
 from pathlib import Path
@@ -97,7 +96,7 @@ class Nav2BaseClient:
                 capture_output=capture_output,
                 text=True,
                 timeout=timeout_value,
-                check=False
+                check=False,
             )
             
             logger.debug(f"Command return code: {result.returncode}")
