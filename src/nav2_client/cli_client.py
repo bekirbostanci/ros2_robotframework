@@ -131,7 +131,7 @@ class Nav2CLIClient(Nav2BaseClient):
         
         try:
             result = self._run_ros2_command(
-                ['service', 'call', '/navigate_to_pose', 'std_srvs/srv/Empty', '{}'],
+                ['service', 'call', '/navigate_to_pose/_action/cancel_goal', 'action_msgs/srv/CancelGoal', '{}'],
                 timeout=timeout
             )
             

@@ -2,7 +2,6 @@
 Main Navigation2 client that combines CLI and native operations
 """
 
-import time
 import asyncio
 from typing import List, Dict, Any, Optional, Union
 from robot.api.deco import keyword
@@ -144,13 +143,12 @@ class Nav2ClientLibrary(Nav2BaseClient):
             return self.cli_client.navigate_through_poses(poses, frame_id, timeout)
     
     @keyword
-    def cancel_navigation(self, timeout: Optional[float] = None, use_native: Optional[bool] = None) -> bool:
+    def cancel_navigation(self, timeout: Optional[float] = None) -> bool:
         """
         Cancel the current navigation operation.
         
         Args:
             timeout: Override default timeout
-            use_native: Override default native preference
             
         Returns:
             True if cancellation was successful
@@ -159,12 +157,7 @@ class Nav2ClientLibrary(Nav2BaseClient):
             | ${cancelled}= | Cancel Navigation |
             | Should Be True | ${cancelled} |
         """
-        use_native = use_native if use_native is not None else self.use_native
-        
-        if use_native and self.native_client:
-            return self.native_client.cancel_navigation_native(timeout)
-        else:
-            return self.cli_client.cancel_navigation(timeout)
+        return self.cli_client.cancel_navigation(timeout)
     
     @keyword
     def is_navigation_active(self) -> bool:

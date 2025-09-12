@@ -4,15 +4,15 @@ Library          ros2_client.ROS2ClientLibrary
 Library          nav2_client.Nav2ClientLibrary
 Library          Collections
 Library          OperatingSystem
-Library    Process     
+Library          Process     
 
 *** Variables ***
-${WAIT_TIME}         5s
-${WAIT_TIME_FOR_FINAL_POSE}    30
-${GOAL_X}            -1.7
-${GOAL_Y}            0.0
-${GOAL_THETA}        1.57
-${TOLERANCE}         0.5
+${WAIT_TIME}             5s
+${NAVIGATION_TIMEOUT}    30
+${GOAL_X}               -1.7
+${GOAL_Y}                0.5
+${GOAL_THETA}            1.57
+${TOLERANCE}             0.5
 
 *** Test Cases ***
 Test Navigation2 Simple Movement
@@ -23,7 +23,7 @@ Test Navigation2 Simple Movement
     
     # Send vehicle to another place
     Log    Sending vehicle to position (${GOAL_X}, ${GOAL_Y}, ${GOAL_THETA})...
-    ${nav_success}=    Navigate To Pose Simple    ${GOAL_X}    ${GOAL_Y}    ${GOAL_THETA}    timeout=${WAIT_TIME_FOR_FINAL_POSE}
+    ${nav_success}=    Navigate To Pose Simple    ${GOAL_X}    ${GOAL_Y}    ${GOAL_THETA}    timeout=${NAVIGATION_TIMEOUT}
     Log    Navigation command sent: ${nav_success}
     
     # Get robot pose
@@ -46,11 +46,11 @@ Test Navigation2 Cancel Navigation
     
      # Send vehicle to another place
     Log    Sending vehicle to position (${GOAL_X}, ${GOAL_Y}, ${GOAL_THETA})...
-    Async Navigate To Pose Simple    ${GOAL_X}    ${GOAL_Y}    ${GOAL_THETA}    timeout=${WAIT_TIME_FOR_FINAL_POSE}
+    Async Navigate To Pose Simple    ${GOAL_X}    ${GOAL_Y}    ${GOAL_THETA}    timeout=${NAVIGATION_TIMEOUT}
 
     Sleep    1s    
-    Call Service    /navigate_to_pose/_action/cancel_goal    action_msgs/srv/CancelGoal   {}
-    
+    # Call Service    /navigate_to_pose/_action/cancel_goal    action_msgs/srv/CancelGoal   {}
+    Cancel Navigation
     # Check if navigation is active
     ${active}=    Is Navigation Active
     Should Be Equal    ${active}    ${False}
@@ -85,5 +85,3 @@ Clean Up Navigation2 Simulation
 
     ${shutdown}=    Shutdown Process    ros_gz_bridge
     Should Be True    ${shutdown}
-
-    Sleep    5s    
