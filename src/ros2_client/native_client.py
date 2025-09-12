@@ -466,9 +466,35 @@ class ROS2NativeClient(ROS2BaseClient):
         self._ensure_initialized()
         
         try:
-            param = Parameter(parameter_name, value)
+            # Determine parameter type based on value type
+            if isinstance(value, bool):
+                param_type = Parameter.Type.BOOL
+            elif isinstance(value, int):
+                param_type = Parameter.Type.INTEGER
+            elif isinstance(value, float):
+                param_type = Parameter.Type.DOUBLE
+            elif isinstance(value, str):
+                param_type = Parameter.Type.STRING
+            elif isinstance(value, list):
+                # For arrays, determine type based on first element
+                if not value:
+                    param_type = Parameter.Type.STRING_ARRAY  # Default to string array for empty lists
+                elif isinstance(value[0], bool):
+                    param_type = Parameter.Type.BOOL_ARRAY
+                elif isinstance(value[0], int):
+                    param_type = Parameter.Type.INTEGER_ARRAY
+                elif isinstance(value[0], float):
+                    param_type = Parameter.Type.DOUBLE_ARRAY
+                else:
+                    param_type = Parameter.Type.STRING_ARRAY
+            else:
+                # Default to string for unknown types
+                param_type = Parameter.Type.STRING
+                value = str(value)
+            
+            param = Parameter(parameter_name, param_type, value)
             self.node.set_parameters([param])
-            logger.info(f"Set native parameter '{parameter_name}' to: {value}")
+            logger.info(f"Set native parameter '{parameter_name}' to: {value} (type: {param_type})")
             return True
         except Exception as e:
             logger.error(f"Failed to set native parameter '{parameter_name}': {e}")
@@ -826,6 +852,7 @@ class ROS2NativeClient(ROS2BaseClient):
     @keyword
     def get_client_info(self) -> Dict[str, Any]:
         """Get information about the native client."""
+        self._ensure_initialized()
         return {
             'initialized': self._initialized,
             'node_name': self.node_name,
