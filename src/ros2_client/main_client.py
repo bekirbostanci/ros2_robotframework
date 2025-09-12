@@ -234,33 +234,53 @@ class ROS2ClientLibrary(ROS2BaseClient):
         return self.cli_client.wait_for_node(node_name, timeout, check_interval)
 
     # ============================================================================
-    # PARAMETER OPERATIONS (Smart Selection)
+    # PARAMETER OPERATIONS (Native Only)
     # ============================================================================
     
     @keyword
-    def list_parameters(self, node_name: str, timeout: Optional[float] = None, use_native: Optional[bool] = None) -> List[str]:
-        """List all parameters for a node (uses native if available and node_name matches native node)."""
-        return self.native_client.list_parameters()
+    def list_parameters(self) -> List[str]:
+        """List all parameters for the native node (native only)."""
+        if self.native_client:
+            return self.native_client.list_parameters()
+        else:
+            logger.warn("Native client not available, cannot list parameters")
+            return []
             
     @keyword
-    def get_parameter(self, node_name: str, parameter_name: str, timeout: Optional[float] = None, use_native: Optional[bool] = None) -> Any:
-        """Get a parameter (uses native if available and node_name matches native node)."""
-        return self.native_client.get_parameter(parameter_name)
+    def get_parameter(self, parameter_name: str, default_value: Any = None) -> Any:
+        """Get a parameter from the native node (native only)."""
+        if self.native_client:
+            return self.native_client.get_parameter(parameter_name, default_value)
+        else:
+            logger.warn("Native client not available, cannot get parameter")
+            return default_value
     
     @keyword
-    def set_parameter(self, node_name: str, parameter_name: str, value: Union[str, int, float, bool], timeout: Optional[float] = None, use_native: Optional[bool] = None) -> bool:
-        """Set a parameter (uses native if available and node_name matches native node)."""
-        return self.native_client.set_parameter(parameter_name, value)
+    def set_parameter(self, parameter_name: str, value: Union[str, int, float, bool]) -> bool:
+        """Set a parameter on the native node (native only)."""
+        if self.native_client:
+            return self.native_client.set_parameter(parameter_name, value)
+        else:
+            logger.warn("Native client not available, cannot set parameter")
+            return False
     
     @keyword
-    def parameter_exists(self, node_name: str, parameter_name: str, timeout: Optional[float] = None, use_native: Optional[bool] = None) -> bool:
-        """Check if a parameter exists (uses native if available and node_name matches native node)."""
-        return self.native_client.parameter_exists(parameter_name)
+    def parameter_exists(self, parameter_name: str) -> bool:
+        """Check if a parameter exists on the native node (native only)."""
+        if self.native_client:
+            return self.native_client.parameter_exists(parameter_name)
+        else:
+            logger.warn("Native client not available, cannot check parameter existence")
+            return False
     
     @keyword
-    def get_all_parameters(self, node_name: str, timeout: Optional[float] = None, use_native: Optional[bool] = None) -> Dict[str, Any]:
-        """Get all parameters for a node (uses native if available and node_name matches native node)."""
-        return self.native_client.get_all_parameters()
+    def get_all_parameters(self) -> Dict[str, Any]:
+        """Get all parameters from the native node (native only)."""
+        if self.native_client:
+            return self.native_client.get_all_parameters()
+        else:
+            logger.warn("Native client not available, cannot get all parameters")
+            return {}
 
     # ============================================================================
     # LAUNCH OPERATIONS (Always CLI)
@@ -366,31 +386,14 @@ class ROS2ClientLibrary(ROS2BaseClient):
             logger.warn("Native client not available, cannot wait for message")
             return None
     
-    @keyword
-    def get_parameter_native(self, parameter_name: str, default_value: Any = None) -> Any:
-        """Get a parameter using native ROS2 (native only)."""
-        if self.native_client:
-            return self.native_client.get_parameter(parameter_name, default_value)
-        else:
-            logger.warn("Native client not available, cannot get parameter natively")
-            return default_value
     
     @keyword
-    def set_parameter_native(self, parameter_name: str, value: Any) -> bool:
-        """Set a parameter using native ROS2 (native only)."""
-        if self.native_client:
-            return self.native_client.set_parameter(parameter_name, value)
-        else:
-            logger.warn("Native client not available, cannot set parameter natively")
-            return False
-    
-    @keyword
-    def declare_parameter_native(self, parameter_name: str, default_value: Any) -> bool:
-        """Declare a parameter with default value (native only)."""
+    def declare_parameter(self, parameter_name: str, default_value: Any) -> bool:
+        """Declare a parameter with default value on the native node (native only)."""
         if self.native_client:
             return self.native_client.declare_parameter(parameter_name, default_value)
         else:
-            logger.warn("Native client not available, cannot declare parameter natively")
+            logger.warn("Native client not available, cannot declare parameter")
             return False
 
     @keyword
