@@ -20,32 +20,22 @@ class ROS2ClientLibrary(ROS2BaseClient):
     that automatically uses the most appropriate method (CLI or native) for each operation.
     """
     
-    def __init__(self, timeout: float = 10.0, use_native: bool = True, node_name: str = "robotframework_ros2"):
+    def __init__(self, timeout: float = 10.0, node_name: str = "robotframework_ros2"):
         """
         Initialize main client.
         
         Args:
             timeout: Default timeout for operations
-            use_native: Whether to use native operations when available
             node_name: Name for the native ROS2 node
         """
         super().__init__(timeout)
-        self.use_native = use_native
         
         # Initialize both clients
         self.cli_client = ROS2CLIClient(timeout)
         
-        if use_native:
-            try:
-                self.native_client = ROS2NativeClient(timeout, node_name)
-                logger.info("Main client initialized with both CLI and native support")
-            except Exception as e:
-                logger.warn(f"Failed to initialize native client, falling back to CLI only: {e}")
-                self.native_client = None
-                self.use_native = False
-        else:
-            self.native_client = None
-            logger.info("Main client initialized with CLI support only")
+        # Initialize native client
+        self.native_client = ROS2NativeClient(timeout, node_name)
+        logger.info("Main client initialized with both CLI and native support")
     
     # ============================================================================
     # TOPIC OPERATIONS (Smart Selection)
@@ -62,14 +52,13 @@ class ROS2ClientLibrary(ROS2BaseClient):
         return self.cli_client.get_topic_info(topic_name, timeout)
     
     @keyword
-    def create_publisher(self, topic_name: str, message_type: str = "std_msgs/msg/String", use_native: Optional[bool] = None) -> str:
+    def create_publisher(self, topic_name: str, message_type: str = "std_msgs/msg/String") -> str:
         """
         Create a publisher (uses native if available, otherwise CLI).
         
         Args:
             topic_name: Name of the topic
             message_type: Type of the message
-            use_native: Override default native preference
             
         Returns:
             Publisher ID or topic name
@@ -78,24 +67,16 @@ class ROS2ClientLibrary(ROS2BaseClient):
             | ${publisher}= | Create Publisher | /chatter | std_msgs/msg/String |
             | Publish Message | ${publisher} | Hello World |
         """
-        use_native = use_native if use_native is not None else self.use_native
-        
-        if use_native and self.native_client:
-            return self.native_client.create_publisher(topic_name, message_type)
-        else:
-            # For CLI, we just return the topic name
-            logger.info(f"Using CLI mode for publisher on topic '{topic_name}'")
-            return topic_name
+        return self.native_client.create_publisher(topic_name, message_type)
     
     @keyword
-    def publish_message(self, publisher_id: str, data: Any, use_native: Optional[bool] = None) -> bool:
+    def publish_message(self, publisher_id: str, data: Any) -> bool:
         """
         Publish a message (uses native if available, otherwise CLI).
         
         Args:
             publisher_id: Publisher ID or topic name
             data: Message data
-            use_native: Override default native preference
             
         Returns:
             True if successful
@@ -104,23 +85,16 @@ class ROS2ClientLibrary(ROS2BaseClient):
             | ${publisher}= | Create Publisher | /chatter |
             | Publish Message | ${publisher} | Hello World |
         """
-        use_native = use_native if use_native is not None else self.use_native
-        
-        if use_native and self.native_client:
-            return self.native_client.publish_message(publisher_id, data)
-        else:
-            # Use CLI publishing
-            return self.cli_client.publish_topic(publisher_id, "std_msgs/msg/String", str(data))
+        return self.native_client.publish_message(publisher_id, data)
     
     @keyword
-    def create_subscriber(self, topic_name: str, message_type: str = "std_msgs/msg/String", use_native: Optional[bool] = None) -> str:
+    def create_subscriber(self, topic_name: str, message_type: str = "std_msgs/msg/String") -> str:
         """
         Create a subscriber (uses native if available, otherwise CLI).
         
         Args:
             topic_name: Name of the topic
             message_type: Type of the message
-            use_native: Override default native preference
             
         Returns:
             Subscriber ID or topic name
@@ -129,23 +103,15 @@ class ROS2ClientLibrary(ROS2BaseClient):
             | ${subscriber}= | Create Subscriber | /chatter | std_msgs/msg/String |
             | ${message}= | Get Latest Message | /chatter |
         """
-        use_native = use_native if use_native is not None else self.use_native
-        
-        if use_native and self.native_client:
-            return self.native_client.create_subscriber(topic_name, message_type)
-        else:
-            # For CLI, we just return the topic name
-            logger.info(f"Using CLI mode for subscriber on topic '{topic_name}'")
-            return topic_name
+        return self.native_client.create_subscriber(topic_name, message_type)
     
     @keyword
-    def get_latest_message(self, topic_name: str, use_native: Optional[bool] = None) -> Optional[Dict[str, Any]]:
+    def get_latest_message(self, topic_name: str) -> Optional[Dict[str, Any]]:
         """
         Get the latest message (uses native if available, otherwise CLI).
         
         Args:
             topic_name: Name of the topic
-            use_native: Override default native preference
             
         Returns:
             Latest message data or None
@@ -154,16 +120,7 @@ class ROS2ClientLibrary(ROS2BaseClient):
             | ${subscriber}= | Create Subscriber | /chatter |
             | ${message}= | Get Latest Message | /chatter |
         """
-        use_native = use_native if use_native is not None else self.use_native
-        
-        if use_native and self.native_client:
-            return self.native_client.get_latest_message(topic_name)
-        else:
-            # Use CLI echo
-            messages = self.cli_client.echo_topic(topic_name, count=1)
-            if messages:
-                return {'data': messages[0], 'timestamp': time.time()}
-            return None
+        return self.native_client.get_latest_message(topic_name)
     
     @keyword
     def echo_topic(self, topic_name: str, count: int = 1, timeout: Optional[float] = None) -> List[str]:
@@ -420,7 +377,6 @@ class ROS2ClientLibrary(ROS2BaseClient):
     def get_client_info(self) -> Dict[str, Any]:
         """Get information about the current client configuration."""
         info = {
-            'use_native': self.use_native,
             'native_available': self.native_client is not None,
             'timeout': self.timeout,
             'ros2_executable': self._ros2_executable
@@ -431,28 +387,6 @@ class ROS2ClientLibrary(ROS2BaseClient):
         
         return info
     
-    @keyword
-    def switch_to_cli_mode(self):
-        """Switch to CLI-only mode."""
-        if self.native_client:
-            self.native_client.cleanup()
-            self.native_client = None
-        self.use_native = False
-        logger.info("Switched to CLI-only mode")
-    
-    @keyword
-    def switch_to_native_mode(self, node_name: str = "robotframework_ros2"):
-        """Switch to native mode (if available)."""
-        if not self.native_client:
-            try:
-                self.native_client = ROS2NativeClient(self.timeout, node_name)
-                self.use_native = True
-                logger.info("Switched to native mode")
-            except Exception as e:
-                logger.error(f"Failed to switch to native mode: {e}")
-                self.use_native = False
-        else:
-            logger.info("Already in native mode")
 
 
     @keyword

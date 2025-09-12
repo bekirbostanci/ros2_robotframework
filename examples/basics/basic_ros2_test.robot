@@ -225,37 +225,6 @@ Test ROS2 Native Operations
     Terminate Process    ${talker_process}
     Cleanup
 
-Test ROS2 CLI Only Mode
-    [Documentation]    Test CLI-only mode operations
-    [Tags]    cli_only    ros2
-    [Timeout]    20s
-    
-    # Switch to CLI-only mode
-    Switch To CLI Mode
-    ${info}=    Get Client Info
-    Should Not Be True    ${info}[use_native]
-    Log    Switched to CLI-only mode
-    
-    # Start a demo talker
-    ${talker_process}=    Start Process    ros2    run    demo_nodes_cpp    talker
-    Set Test Variable    ${talker_process}
-    
-    # Wait for the node to start
-    Sleep    3s
-    
-    # Use CLI operations
-    ${topics}=    List Topics
-    Should Contain    ${topics}    /chatter
-    Log    Found topics: ${topics}
-    
-    # Echo a message using CLI
-    ${messages}=    Echo Topic    /chatter    count=1
-    Should Not Be Empty    ${messages}
-    Log    Echoed message: ${messages}[0]
-    
-    # Clean up
-    Terminate Process    ${talker_process}
-    Cleanup
 
 Test ROS2 Mixed Operations
     [Documentation]    Test mixing CLI and native operations
