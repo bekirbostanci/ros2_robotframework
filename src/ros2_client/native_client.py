@@ -674,6 +674,7 @@ class ROS2NativeClient(ROS2BaseClient):
             | Should Not Be None | ${transform} |
             | Log | Transform: ${transform} |
         """
+        self.cleanup()
         self._ensure_initialized()
         
         if not self._tf_buffer:
