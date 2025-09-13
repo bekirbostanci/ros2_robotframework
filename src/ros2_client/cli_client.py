@@ -783,17 +783,17 @@ class ROS2CLIClient(ROS2CLIUtils):
             logger.error(f"Failed to shutdown process {process_name}: {e}")
             return False
 
-    def check_empty_nodes(self, timeout: float) -> bool:
+    def has_running_nodes(self, timeout: float) -> bool:
         """
         Check if there are any nodes running.
         """
         while timeout > 0:
             try:
                 nodes = self.list_nodes(timeout=2)
-                if len(nodes) == 0 or nodes == ['/robotframework_nav2']:
-                    return True
+                if not nodes or set(nodes) <= {"/robotframework_nav2", "/robotframework_ros2"}:
+                    return False
             except Exception as e:
                 pass
             time.sleep(1)
             timeout -= 1
-        return False
+        return True

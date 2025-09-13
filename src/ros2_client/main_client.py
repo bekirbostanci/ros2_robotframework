@@ -181,9 +181,9 @@ class ROS2ClientLibrary(ROS2BaseClient):
         return self.cli_client.pkill_process(process_name)
 
     @keyword
-    def check_empty_nodes(self, timeout: float = 30.0) -> bool:
-        """Check if there are any nodes running (always uses CLI)."""
-        return self.cli_client.check_empty_nodes(timeout)
+    def has_running_nodes(self, timeout: float = 30.0) -> bool:
+        """Check if there are any nodes running."""
+        return self.cli_client.has_running_nodes(timeout)
 
     @keyword
     def list_nodes(self, timeout: Optional[float] = None) -> List[str]:

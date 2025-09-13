@@ -71,10 +71,21 @@ Test Navigation2 Cancel Navigation
     Should Contain    ${status}    current_pose
     Should Contain    ${status}    goal_pose
 
+    ${final_pose}=    Get Transform    map    base_link
+    Should Not Be Empty    ${final_pose}
+
+    IF    ${final_pose} is not None
+        ${arrived}=    Is Within Tolerance    ${final_pose}    tolerance=${TOLERANCE}    target_x=${GOAL_X}    target_y=${GOAL_Y}
+        Should Be Equal    ${arrived}    ${False}
+    ELSE
+        Log    Final position is None, skipping tolerance check
+    END
+
 *** Keywords ***
 Setup Navigation2 Simulation
     [Documentation]    Setup Navigation2 simulation
-    Check Empty Nodes
+    ${running}=    Has Running Nodes
+    Should Be Equal    ${running}    ${False}
     # Set environment variables for the test
     Set Environment Variable    TURTLEBOT3_MODEL      waffle
 
@@ -106,4 +117,5 @@ Clean Up Navigation2 Simulation
     ${shutdown}=    Kill Process By Name    ros
     Should Be True    ${shutdown}
 
-    Check Empty Nodes
+    ${running}=    Has Running Nodes
+    Should Be Equal    ${running}    ${False}
