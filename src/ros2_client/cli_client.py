@@ -184,6 +184,16 @@ class ROS2CLIClient(ROS2CLIUtils):
         logger.info(f"Retrieved {len(all_params)} parameters for node '{node_name}'")
         return all_params
 
+    def get_action_list(self, timeout: Optional[float] = None) -> List[str]:
+        """
+        Get list of available actions.
+        
+        Returns:
+            List of action names
+        """
+        result = self._run_ros2_command(['action', 'list'], timeout=timeout)
+        return [line.strip() for line in result.stdout.strip().split('\n') if line.strip()]
+
     # ============================================================================
     # LAUNCH OPERATIONS
     # ============================================================================
@@ -730,3 +740,60 @@ class ROS2CLIClient(ROS2CLIUtils):
         except Exception as e:
             logger.error(f"Failed to shutdown process {process_name}: {e}")
             return False
+
+    
+    @keyword
+    def pkill_process(self, process_name: str, force: bool = False) -> bool:
+        """
+        Shutdown a process by name.
+        
+        Args:
+            process_name: Name of the process to shutdown
+            force: If True, use SIGKILL instead of SIGTERM
+            
+        Returns:
+            True if process was terminated successfully
+
+        Example:
+            | ${shutdown}= | Shutdown Process | ros2 |
+            | Should Be True | ${shutdown} |
+        """
+        try:
+            logger.info(f"Shutting down process: {process_name}")
+            
+            # Find processes by name
+            result = subprocess.run(
+                ['pkill', '-9', '-f', process_name],
+                capture_output=True,
+                text=True,
+                timeout=5.0
+            )
+            
+            if result.returncode == 0:
+                pids = result.stdout.strip().split('\n')
+                for pid in pids:
+                    if pid.strip():
+                        os.kill(int(pid.strip()), 9 if force else 15)
+                        logger.info(f"Terminated process {pid.strip()}")
+            
+            logger.info(f"Process {process_name} shutdown completed")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to shutdown process {process_name}: {e}")
+            return False
+
+    def check_empty_nodes(self, timeout: float) -> bool:
+        """
+        Check if there are any nodes running.
+        """
+        while timeout > 0:
+            try:
+                nodes = self.list_nodes(timeout=2)
+                if len(nodes) == 0 or nodes == ['/robotframework_nav2']:
+                    return True
+            except Exception as e:
+                pass
+            time.sleep(1)
+            timeout -= 1
+        return False

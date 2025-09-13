@@ -142,6 +142,11 @@ class ROS2ClientLibrary(ROS2BaseClient):
     # ============================================================================
     
     @keyword
+    def get_action_list(self) -> List[str]:
+        """List all available actions (always uses CLI)."""
+        return self.cli_client.get_action_list()
+
+    @keyword
     def list_services(self, timeout: Optional[float] = None) -> List[str]:
         """List all available services (always uses CLI)."""
         return self.cli_client.list_services(timeout)
@@ -170,6 +175,16 @@ class ROS2ClientLibrary(ROS2BaseClient):
     # NODE OPERATIONS (Always CLI)
     # ============================================================================
     
+    @keyword
+    def kill_process_by_name(self, process_name: str) -> bool:
+        """Kill a process by name (always uses CLI)."""
+        return self.cli_client.pkill_process(process_name)
+
+    @keyword
+    def check_empty_nodes(self, timeout: float = 30.0) -> bool:
+        """Check if there are any nodes running (always uses CLI)."""
+        return self.cli_client.check_empty_nodes(timeout)
+
     @keyword
     def list_nodes(self, timeout: Optional[float] = None) -> List[str]:
         """List all running nodes (always uses CLI)."""
