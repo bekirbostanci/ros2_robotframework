@@ -540,10 +540,10 @@ class Nav2ClientLibrary(Nav2BaseClient):
             return False
     
     @keyword
-    def wait_for_nav2_ready_native(self, timeout: float = 60.0, check_interval: float = 2.0) -> bool:
+    def wait_for_nav2_ready(self, timeout: float = 60.0, check_interval: float = 2.0) -> bool:
         """Wait for Navigation2 to be ready using native clients (native only)."""
         if self.native_client:
-            return self.native_client.wait_for_nav2_ready_native(timeout, check_interval)
+            return self.native_client.wait_for_nav2_ready(timeout, check_interval)
         else:
             logger.warn("Native client not available, cannot wait for Nav2 ready natively")
             return False
