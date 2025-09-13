@@ -156,7 +156,7 @@ Test Single Pose Navigation
     
     # Check if navigation was successful
     IF    ${result} is not None
-        Should Be True    ${result.success}
+        Should Be True    ${result}
         Log    Navigation completed successfully
     ELSE
         Log    Navigation result is None

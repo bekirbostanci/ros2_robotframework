@@ -149,15 +149,12 @@ class Nav2ClientLibrary(Nav2BaseClient):
     # ============================================================================
 
     @keyword
-    def get_current_pose(
-        self, timeout: Optional[float] = None, use_native: Optional[bool] = None
-    ) -> Optional[Pose]:
+    def get_current_pose(self, timeout: Optional[float] = None) -> Optional[Pose]:
         """
         Get the current robot pose from the localization system.
 
         Args:
             timeout: Override default timeout
-            use_native: Override default native preference
 
         Returns:
             Current pose as Pose object, or None if unavailable
@@ -167,12 +164,7 @@ class Nav2ClientLibrary(Nav2BaseClient):
             | Should Not Be None | ${pose} |
             | Log | Current position: x=${pose.x}, y=${pose.y} |
         """
-        use_native = use_native if use_native is not None else self.use_native
-
-        if use_native and self.native_client:
-            return self.native_client.get_current_pose_native(timeout)
-        else:
-            return self.cli_client.get_current_pose(timeout)
+        return self.native_client.get_current_pose_native(timeout)
 
     @keyword
     def set_initial_pose(
@@ -182,7 +174,6 @@ class Nav2ClientLibrary(Nav2BaseClient):
         theta: float,
         frame_id: str = "map",
         timeout: Optional[float] = None,
-        use_native: Optional[bool] = None,
     ) -> bool:
         """
         Set the initial pose for the robot (for localization).
@@ -193,7 +184,6 @@ class Nav2ClientLibrary(Nav2BaseClient):
             theta: Orientation in radians
             frame_id: Reference frame (default: "map")
             timeout: Override default timeout
-            use_native: Override default native preference
 
         Returns:
             True if initial pose was set successfully
@@ -202,14 +192,10 @@ class Nav2ClientLibrary(Nav2BaseClient):
             | ${success}= | Set Initial Pose | 0.0 | 0.0 | 0.0 |
             | Should Be True | ${success} |
         """
-        use_native = use_native if use_native is not None else self.use_native
 
-        if use_native and self.native_client:
-            return self.native_client.set_initial_pose_native(
-                x, y, theta, frame_id, timeout
-            )
-        else:
-            return self.cli_client.set_initial_pose(x, y, theta, frame_id, timeout)
+        return self.native_client.set_initial_pose_native(
+            x, y, theta, frame_id, timeout
+        )
 
     @keyword
     def set_initial_pose_simple(
@@ -218,7 +204,6 @@ class Nav2ClientLibrary(Nav2BaseClient):
         y: float,
         theta: float,
         timeout: Optional[float] = None,
-        use_native: Optional[bool] = None,
     ) -> bool:
         """
         Set the initial pose for the robot using a simpler approach.
@@ -228,7 +213,6 @@ class Nav2ClientLibrary(Nav2BaseClient):
             y: Y coordinate in meters
             theta: Orientation in radians
             timeout: Override default timeout
-            use_native: Override default native preference
 
         Returns:
             True if initial pose was set successfully
@@ -237,21 +221,14 @@ class Nav2ClientLibrary(Nav2BaseClient):
             | ${success}= | Set Initial Pose Simple | 0.0 | 0.0 | 0.0 |
             | Should Be True | ${success} |
         """
-        use_native = use_native if use_native is not None else self.use_native
 
-        if use_native and self.native_client:
-            return self.native_client.set_initial_pose_native(
-                x, y, theta, "map", timeout
-            )
-        else:
-            return self.cli_client.set_initial_pose_simple(x, y, theta, timeout)
+        return self.native_client.set_initial_pose_native(x, y, theta, "map", timeout)
 
     @keyword
     def wait_for_localization(
         self,
         timeout: float = 30.0,
         check_interval: float = 1.0,
-        use_native: Optional[bool] = None,
     ) -> bool:
         """
         Wait for the robot to be localized (AMCL to converge).
@@ -259,7 +236,6 @@ class Nav2ClientLibrary(Nav2BaseClient):
         Args:
             timeout: Maximum time to wait in seconds
             check_interval: Time between checks in seconds
-            use_native: Override default native preference
 
         Returns:
             True if localization converged within timeout
@@ -268,14 +244,8 @@ class Nav2ClientLibrary(Nav2BaseClient):
             | ${localized}= | Wait For Localization | timeout=60.0 |
             | Should Be True | ${localized} |
         """
-        use_native = use_native if use_native is not None else self.use_native
 
-        if use_native and self.native_client:
-            return self.native_client.wait_for_localization_native(
-                timeout, check_interval
-            )
-        else:
-            return self.cli_client.wait_for_localization(timeout, check_interval)
+        return self.native_client.wait_for_localization_native(timeout, check_interval)
 
     # ============================================================================
     # PATH PLANNING OPERATIONS (Smart Selection)
@@ -335,7 +305,6 @@ class Nav2ClientLibrary(Nav2BaseClient):
         self,
         costmap_type: str = "global",
         timeout: Optional[float] = None,
-        use_native: Optional[bool] = None,
     ) -> Dict[str, Any]:
         """
         Get information about the costmap.
@@ -343,7 +312,6 @@ class Nav2ClientLibrary(Nav2BaseClient):
         Args:
             costmap_type: Type of costmap ("global" or "local")
             timeout: Override default timeout
-            use_native: Override default native preference
 
         Returns:
             Dictionary containing costmap information
@@ -352,19 +320,14 @@ class Nav2ClientLibrary(Nav2BaseClient):
             | ${info}= | Get Costmap Info | global |
             | Should Contain | ${info} | resolution |
         """
-        use_native = use_native if use_native is not None else self.use_native
 
-        if use_native and self.native_client:
-            return self.native_client.get_costmap_info_native(costmap_type, timeout)
-        else:
-            return self.cli_client.get_costmap_info(costmap_type, timeout)
+        return self.native_client.get_costmap_info_native(costmap_type, timeout)
 
     @keyword
     def clear_costmap(
         self,
         costmap_type: str = "global",
         timeout: Optional[float] = None,
-        use_native: Optional[bool] = None,
     ) -> bool:
         """
         Clear the specified costmap.
@@ -372,7 +335,6 @@ class Nav2ClientLibrary(Nav2BaseClient):
         Args:
             costmap_type: Type of costmap to clear ("global" or "local")
             timeout: Override default timeout
-            use_native: Override default native preference
 
         Returns:
             True if costmap was cleared successfully
@@ -381,27 +343,19 @@ class Nav2ClientLibrary(Nav2BaseClient):
             | ${cleared}= | Clear Costmap | global |
             | Should Be True | ${cleared} |
         """
-        use_native = use_native if use_native is not None else self.use_native
-
-        if use_native and self.native_client:
-            return self.native_client.clear_costmap_native(costmap_type, timeout)
-        else:
-            return self.cli_client.clear_costmap(costmap_type, timeout)
+        return self.native_client.clear_costmap_native(costmap_type, timeout)
 
     # ============================================================================
     # NAVIGATION2 STATUS OPERATIONS (Smart Selection)
     # ============================================================================
 
     @keyword
-    def get_navigation_status(
-        self, timeout: Optional[float] = None, use_native: Optional[bool] = None
-    ) -> Dict[str, Any]:
+    def get_navigation_status(self, timeout: Optional[float] = None) -> Dict[str, Any]:
         """
         Get the current navigation status.
 
         Args:
             timeout: Override default timeout
-            use_native: Override default native preference
 
         Returns:
             Dictionary containing navigation status information
@@ -410,12 +364,7 @@ class Nav2ClientLibrary(Nav2BaseClient):
             | ${status}= | Get Navigation Status |
             | Log | Navigation active: ${status}[navigation_active] |
         """
-        use_native = use_native if use_native is not None else self.use_native
-
-        if use_native and self.native_client:
-            return self.native_client.get_navigation_status_native(timeout)
-        else:
-            return self.cli_client.get_navigation_status(timeout)
+        return self.native_client.get_navigation_status_native(timeout)
 
     # ============================================================================
     # NATIVE-SPECIFIC OPERATIONS
