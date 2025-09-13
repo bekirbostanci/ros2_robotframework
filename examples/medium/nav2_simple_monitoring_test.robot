@@ -15,6 +15,14 @@ ${GOAL_THETA}            1.57
 ${TOLERANCE}             0.5
 
 *** Test Cases ***
+Test Shutdown Navigation2 Simulation
+    [Documentation]    Test shutdown Navigation2 simulation
+    [Tags]    nav2    shutdown
+    [Setup]    Setup Navigation2 Simulation
+    [Teardown]    Clean Up Navigation2 Simulation
+    
+    Sleep    1s    
+
 Test Navigation2 Simple Movement
     [Documentation]    Launch Navigation2 simulation, wait 5 seconds, send vehicle to another place
     [Tags]    nav2    simple    movement
@@ -29,6 +37,7 @@ Test Navigation2 Simple Movement
     # Get robot pose
     ${final_pose}=   Get Transform    map    base_link
     Log    Final position: ${final_pose}
+    Should Not Be Empty    ${final_pose}
 
     # Check if robot is within tolerance
     IF    ${final_pose} is not None
@@ -65,17 +74,22 @@ Test Navigation2 Cancel Navigation
 *** Keywords ***
 Setup Navigation2 Simulation
     [Documentation]    Setup Navigation2 simulation
+    Check Empty Nodes
     # Set environment variables for the test
     Set Environment Variable    TURTLEBOT3_MODEL      waffle
-    
+
     # Launch the Navigation2 simulation
     Log    Starting Navigation2 simulation launch...
     ${process}=    Launch Package    turtlebot3    simulation.launch.py
     Should Not Be Equal    ${process}    ${None}
     Log    Launch process started with PID: ${process.pid}
-    
+
+    ${ready}=    Wait For Nav2 Ready
+    Should Be True    ${ready}
+
     # Wait for the launch to initialize
     Sleep    ${WAIT_TIME}
+    RETURN    ${process}
 
 Clean Up Navigation2 Simulation
     [Documentation]    Clean up Navigation2 simulation
@@ -85,3 +99,11 @@ Clean Up Navigation2 Simulation
 
     ${shutdown}=    Shutdown Process    ros_gz_bridge
     Should Be True    ${shutdown}
+
+    ${shutdown}=    Shutdown Process    rviz2
+    Should Be True    ${shutdown}
+
+    ${shutdown}=    Kill Process By Name    ros
+    Should Be True    ${shutdown}
+
+    Check Empty Nodes
