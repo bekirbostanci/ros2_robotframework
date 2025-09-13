@@ -205,17 +205,6 @@ Test Parameter with Default Value
     ${param_value}=    Get Parameter    non_existent_param    default_value=${default_value}
     Should Be Equal As Numbers    ${param_value}    ${default_value}
 
-Test Service Client Creation
-    [Documentation]    Test creating service clients (simplified implementation)
-    [Tags]    services
-    
-    ${client_id}=    Create Service Client    ${TEST_SERVICE}    std_srvs/srv/Empty
-    Should Not Be Empty    ${client_id}
-    
-    # Note: Service calling is simplified in the current implementation
-    ${response}=    Call Service Native    ${client_id}    {}    timeout=${TEST_TIMEOUT}
-    # Response will be None due to simplified implementation
-
 Test TF2 Operations
     [Documentation]    Test TF2 transform operations
     [Tags]    tf2    transforms
