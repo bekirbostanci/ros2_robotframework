@@ -501,7 +501,7 @@ class ROS2CLIClient(ROS2CLIUtils):
             raise
     
     @keyword
-    def run_node_with_remap(self, package_name: str, executable_name: str, remaps: Optional[Dict[str, str]] = None, arguments: Optional[List[str]] = None, timeout: Optional[float] = None) -> subprocess.Popen:
+    def run_node_with_remap(self, package_name: str, executable_name: str, remaps: Optional[Dict[str, str]] = None, arguments: Optional[List[str]] = None) -> subprocess.Popen:
         """
         Run a ROS2 node with topic/service remapping.
         
@@ -510,7 +510,6 @@ class ROS2CLIClient(ROS2CLIUtils):
             executable_name: Name of the executable/node
             remaps: Dictionary of remappings (old_topic -> new_topic)
             arguments: List of additional command-line arguments
-            timeout: Override default timeout for this operation
             
         Returns:
             Popen process object for the running node
@@ -531,7 +530,6 @@ class ROS2CLIClient(ROS2CLIUtils):
         
         # Run the node in the background
         full_command = [self._ros2_executable] + command
-        timeout_value = timeout or self.timeout
         
         logger.info(f"Running ROS2 node with remaps: {' '.join(full_command)}")
         

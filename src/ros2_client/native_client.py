@@ -12,7 +12,6 @@ from std_msgs.msg import String, Bool, Int32, Float32
 from geometry_msgs.msg import PoseStamped, Twist, Point, Quaternion, TransformStamped
 from sensor_msgs.msg import LaserScan, Image
 import tf2_ros
-import tf2_geometry_msgs
 from tf2_ros import TransformException
 import threading
 import time
@@ -602,55 +601,6 @@ class ROS2NativeClient(ROS2BaseClient):
         except Exception as e:
             logger.error(f"Failed to get all native parameters: {e}")
             return {}
-
-    # ============================================================================
-    # NATIVE SERVICE OPERATIONS
-    # ============================================================================
-    
-    @keyword
-    def create_service_client(self, service_name: str, service_type: str) -> str:
-        """
-        Create a native ROS2 service client.
-        
-        Args:
-            service_name: Name of the service
-            service_type: Type of the service (e.g., 'std_srvs/srv/Empty')
-            
-        Returns:
-            Service client ID for use with other methods
-            
-        Example:
-            | ${client}= | Create Service Client | /my_service | std_srvs/srv/Empty |
-        """
-        self._ensure_initialized()
-        
-        # This is a simplified implementation - you'd need to import actual service types
-        client_id = f"{service_name}_{len(self._subscribers)}"  # Using subscribers dict for simplicity
-        
-        logger.info(f"Created native service client for '{service_name}' with ID: {client_id}")
-        return client_id
-    
-    @keyword
-    def call_service_native(self, client_id: str, request_data: Any, timeout: float = 10.0) -> Optional[Any]:
-        """
-        Call a service using native ROS2 service client.
-        
-        Args:
-            client_id: ID of the service client
-            request_data: Request data
-            timeout: Timeout for the service call
-            
-        Returns:
-            Service response or None if failed
-            
-        Example:
-            | ${client}= | Create Service Client | /my_service | std_srvs/srv/Empty |
-            | ${response}= | Call Service Native | ${client} | {} | timeout=5.0 |
-        """
-        # This is a simplified implementation
-        logger.info(f"Calling native service with client '{client_id}'")
-        # In a real implementation, you'd use the actual service client
-        return None
 
     # ============================================================================
     # TF2 OPERATIONS

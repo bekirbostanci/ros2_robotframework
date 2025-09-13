@@ -52,7 +52,7 @@ class ROS2ClientLibrary(ROS2BaseClient):
         return self.cli_client.get_topic_info(topic_name, timeout)
     
     @keyword
-    def create_publisher(self, topic_name: str, message_type: str = "std_msgs/msg/String") -> str:
+    def create_publisher(self, topic_name: str, message_type: str) -> str:
         """
         Create a publisher (uses native if available, otherwise CLI).
         
@@ -88,7 +88,7 @@ class ROS2ClientLibrary(ROS2BaseClient):
         return self.native_client.publish_message(publisher_id, data)
     
     @keyword
-    def create_subscriber(self, topic_name: str, message_type: str = "std_msgs/msg/String") -> str:
+    def create_subscriber(self, topic_name: str, message_type: str) -> str:
         """
         Create a subscriber (uses native if available, otherwise CLI).
         
@@ -174,12 +174,6 @@ class ROS2ClientLibrary(ROS2BaseClient):
     # ============================================================================
     # NODE OPERATIONS (Always CLI)
     # ============================================================================
-    
-    @keyword
-    def kill_process_by_name(self, process_name: str) -> bool:
-        """Kill a process by name (always uses CLI)."""
-        return self.cli_client.pkill_process(process_name)
-
     @keyword
     def has_running_nodes(self, timeout: float = 30.0) -> bool:
         """Check if there are any nodes running."""
@@ -326,6 +320,11 @@ class ROS2ClientLibrary(ROS2BaseClient):
     def shutdown_process(self, process_name: str, force: bool = False) -> bool:
         """Shutdown a process by name (always uses CLI)."""
         return self.cli_client.shutdown_process(process_name, force)
+    
+    @keyword
+    def kill_process_by_name(self, process_name: str) -> bool:
+        """Kill a process by name (always uses CLI)."""
+        return self.cli_client.pkill_process(process_name)
 
     # ============================================================================
     # NATIVE-SPECIFIC OPERATIONS
