@@ -88,6 +88,9 @@ Setup Navigation2 Simulation
     Should Be Equal    ${running}    ${False}
     # Set environment variables for the test
     Set Environment Variable    TURTLEBOT3_MODEL      waffle
+    
+    # Clean up any existing simulation
+    Clean Up Navigation2 Simulation
 
     # Launch the Navigation2 simulation
     Log    Starting Navigation2 simulation launch...
