@@ -9,7 +9,7 @@ ${TEST_TIMEOUT}    10.0
 ${TEST_MESSAGE}    Hello from new structure!
 
 *** Test Cases ***
-Test ROS2 CLI Library Basic Functionality
+Verify ROS2 Discovery Operations
     [Documentation]    Test basic ROS2 CLI operations
     [Tags]    basic    ros2
     
@@ -35,7 +35,7 @@ Test ROS2 CLI Library Basic Functionality
         Log    Topic ${first_topic} exists: ${exists}
     END
 
-Test ROS2 CLI Library With Demo Nodes
+Test ROS2 Node And Topic Operations With Demo
     [Documentation]    Test ROS2 CLI operations with demo nodes
     [Tags]    demo    ros2
     [Timeout]    30s
@@ -104,7 +104,7 @@ Test ROS2 CLI Library With Demo Nodes
     # Clean up
     Terminate Process    ${talker_process}
 
-Test ROS2 CLI Library Launch Operations
+Test ROS2 Launch File Operations
     [Documentation]    Test launch operations with demo nodes
     [Tags]    launch    ros2
     [Timeout]    30s
@@ -134,7 +134,7 @@ Test ROS2 CLI Library Launch Operations
         Log    Demo launch file not available, skipping launch test
     END
 
-Test ROS2 CLI Library Run Operations
+Test ROS2 Node Execution And Management
     [Documentation]    Test run operations with demo nodes
     [Tags]    run    ros2
     [Timeout]    20s
@@ -160,7 +160,7 @@ Test ROS2 CLI Library Run Operations
     Should Be True    ${terminated}
     Log    Node terminated successfully
 
-Test ROS2 CLI Library Error Handling
+Test ROS2 Error Handling For Non-Existent Resources
     [Documentation]    Test error handling for non-existent resources
     [Tags]    error    ros2
     
@@ -176,7 +176,7 @@ Test ROS2 CLI Library Error Handling
     ${exists}=    Node Exists    /non_existent_node    timeout=2.0
     Should Not Be True    ${exists}
 
-Test ROS2 Native Operations
+Test ROS2 Native Publisher And Subscriber Operations
     [Documentation]    Test native ROS2 operations with subscribers and publishers
     [Tags]    native    ros2
     [Timeout]    30s
@@ -186,7 +186,7 @@ Test ROS2 Native Operations
     Log    Using client with native support: ${info}[native_available]
     
     # Start a demo talker node
-    ${talker_process}=    Start Process    ros2    run    demo_nodes_cpp    talker
+    ${talker_process}=    Run Node    demo_nodes_cpp    talker
     Set Test Variable    ${talker_process}
     
     # Wait for the node to start
@@ -222,11 +222,11 @@ Test ROS2 Native Operations
     Log    Published test message successfully
     
     # Clean up
-    Terminate Process    ${talker_process}
+    Shutdown Process    ${talker_process}
     Cleanup
 
 
-Test ROS2 Mixed Operations
+Test ROS2 CLI And Native Operations Integration
     [Documentation]    Test mixing CLI and native operations
     [Tags]    mixed    ros2
     [Timeout]    25s
