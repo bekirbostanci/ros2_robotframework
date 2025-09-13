@@ -123,11 +123,11 @@ Test Navigation Through Poses
     
     # Add poses to the list
     ${pose1}=    Create Dictionary    x=-2.0    y=0.0    theta=0.0
-    # ${pose2}=    Create Dictionary    x=0.0    y=1.0    theta=1.57
+    ${pose2}=    Create Dictionary    x=-2.0    y=1.5    theta=1.57
     ${pose3}=    Create Dictionary    x=-2.0    y=1.0    theta=3.14
     
     Append To List    ${poses}    ${pose1}
-    # Append To List    ${poses}    ${pose2}
+    Append To List    ${poses}    ${pose2}
     Append To List    ${poses}    ${pose3}
     
     Log    Created ${poses} poses for navigation

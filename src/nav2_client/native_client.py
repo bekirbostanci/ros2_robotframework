@@ -438,7 +438,7 @@ class Nav2NativeClient(Nav2BaseClient):
             return False
 
     @keyword
-    def navigate_through_poses_native(
+    def navigate_through_poses(
         self,
         poses: List[Dict[str, float]],
         frame_id: str = "map",
@@ -457,7 +457,7 @@ class Nav2NativeClient(Nav2BaseClient):
 
         Example:
             | @{poses}= | Create List | ${{'x': 1.0, 'y': 0.0, 'theta': 0.0}} | ${{'x': 2.0, 'y': 1.0, 'theta': 1.57}} |
-            | ${result}= | Navigate Through Poses Native | ${poses} |
+            | ${result}= | Navigate Through Poses | ${poses} |
             | Should Be True | ${result.success} |
         """
         self._ensure_initialized()
@@ -542,40 +542,6 @@ class Nav2NativeClient(Nav2BaseClient):
             return NavigationResult(
                 success=False, message=f"Native navigation through poses error: {e}"
             )
-
-    @keyword
-    def cancel_navigation_native(self, timeout: Optional[float] = None) -> bool:
-        """
-        Cancel the current navigation operation using native action client.
-
-        Args:
-            timeout: Override default timeout
-
-        Returns:
-            True if cancellation was successful
-
-        Example:
-            | ${cancelled}= | Cancel Navigation Native |
-            | Should Be True | ${cancelled} |
-        """
-        self._ensure_initialized()
-
-        logger.info("Cancelling current navigation (native)...")
-
-        try:
-            # Cancel all active goals
-            if self._navigate_to_pose_action_client:
-                self._navigate_to_pose_action_client.cancel_all_goals()
-            if self._navigate_through_poses_action_client:
-                self._navigate_through_poses_action_client.cancel_all_goals()
-
-            self._navigation_active = False
-            logger.info("Navigation cancelled successfully (native)")
-            return True
-
-        except Exception as e:
-            logger.error(f"Error cancelling navigation (native): {e}")
-            return False
 
     # ============================================================================
     # NATIVE POSE AND LOCALIZATION OPERATIONS

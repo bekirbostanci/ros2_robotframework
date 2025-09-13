@@ -37,28 +37,13 @@ class Nav2ClientLibrary(Nav2BaseClient):
             node_name: Name for the native ROS2 node
         """
         super().__init__(timeout, action_timeout)
-        self.use_native = use_native
 
         # Initialize both clients
         self.cli_client = Nav2CLIClient(timeout, action_timeout)
-
-        if use_native:
-            try:
-                self.native_client = Nav2NativeClient(
-                    timeout, action_timeout, node_name
-                )
-                logger.info(
-                    "Main Navigation2 client initialized with both CLI and native support"
-                )
-            except Exception as e:
-                logger.warn(
-                    f"Failed to initialize native client, falling back to CLI only: {e}"
-                )
-                self.native_client = None
-                self.use_native = False
-        else:
-            self.native_client = None
-            logger.info("Main Navigation2 client initialized with CLI support only")
+        self.native_client = Nav2NativeClient(timeout, action_timeout, node_name)
+        logger.info(
+            "Main Navigation2 client initialized with both CLI and native support"
+        )
 
     # ============================================================================
     # NAVIGATION OPERATIONS (Smart Selection)
@@ -127,40 +112,6 @@ class Nav2ClientLibrary(Nav2BaseClient):
                 logger.error("Failed to send navigation goal")
         except Exception as e:
             logger.error(f"Failed to send navigation goal: {e}")
-
-    @keyword
-    def navigate_through_poses(
-        self,
-        poses: List[Dict[str, float]],
-        frame_id: str = "map",
-        timeout: Optional[float] = None,
-        use_native: Optional[bool] = None,
-    ) -> NavigationResult:
-        """
-        Navigate through a sequence of poses using Navigation2.
-
-        Args:
-            poses: List of pose dictionaries with 'x', 'y', 'theta' keys
-            frame_id: Reference frame (default: "map")
-            timeout: Override default action timeout
-            use_native: Override default native preference
-
-        Returns:
-            NavigationResult object with success status and details
-
-        Example:
-            | @{poses}= | Create List | ${{'x': 1.0, 'y': 0.0, 'theta': 0.0}} | ${{'x': 2.0, 'y': 1.0, 'theta': 1.57}} |
-            | ${result}= | Navigate Through Poses | ${poses} |
-            | Should Be True | ${result.success} |
-        """
-        use_native = use_native if use_native is not None else self.use_native
-
-        if use_native and self.native_client:
-            return self.native_client.navigate_through_poses_native(
-                poses, frame_id, timeout
-            )
-        else:
-            return self.cli_client.navigate_through_poses(poses, frame_id, timeout)
 
     @keyword
     def cancel_navigation(self, timeout: Optional[float] = None) -> bool:
@@ -491,7 +442,7 @@ class Nav2ClientLibrary(Nav2BaseClient):
             )
 
     @keyword
-    def navigate_through_poses_native(
+    def navigate_through_poses(
         self,
         poses: List[Dict[str, float]],
         frame_id: str = "map",
@@ -499,9 +450,7 @@ class Nav2ClientLibrary(Nav2BaseClient):
     ) -> NavigationResult:
         """Navigate through a sequence of poses using native Navigation2 action client (native only)."""
         if self.native_client:
-            return self.native_client.navigate_through_poses_native(
-                poses, frame_id, timeout
-            )
+            return self.native_client.navigate_through_poses(poses, frame_id, timeout)
         else:
             logger.warn(
                 "Native client not available, cannot navigate through poses natively"
@@ -509,17 +458,6 @@ class Nav2ClientLibrary(Nav2BaseClient):
             return NavigationResult(
                 success=False, message="Native client not available"
             )
-
-    @keyword
-    def cancel_navigation_native(self, timeout: Optional[float] = None) -> bool:
-        """Cancel the current navigation operation using native action client (native only)."""
-        if self.native_client:
-            return self.native_client.cancel_navigation_native(timeout)
-        else:
-            logger.warn(
-                "Native client not available, cannot cancel navigation natively"
-            )
-            return False
 
     @keyword
     def get_current_pose_native(
@@ -646,28 +584,3 @@ class Nav2ClientLibrary(Nav2BaseClient):
             info["native_info"] = self.native_client.get_client_info()
 
         return info
-
-    @keyword
-    def switch_to_cli_mode(self):
-        """Switch to CLI-only mode."""
-        if self.native_client:
-            self.native_client.cleanup()
-            self.native_client = None
-        self.use_native = False
-        logger.info("Switched to CLI-only mode")
-
-    @keyword
-    def switch_to_native_mode(self, node_name: str = "robotframework_nav2"):
-        """Switch to native mode (if available)."""
-        if not self.native_client:
-            try:
-                self.native_client = Nav2NativeClient(
-                    self.timeout, self.action_timeout, node_name
-                )
-                self.use_native = True
-                logger.info("Switched to native mode")
-            except Exception as e:
-                logger.error(f"Failed to switch to native mode: {e}")
-                self.use_native = False
-        else:
-            logger.info("Already in native mode")
