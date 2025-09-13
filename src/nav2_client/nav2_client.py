@@ -341,10 +341,9 @@ class Nav2ClientLibrary(Nav2BaseClient):
         goal_theta: float,
         frame_id: str = "map",
         timeout: Optional[float] = None,
-        use_native: Optional[bool] = None,
     ) -> Optional[List[Dict[str, float]]]:
         """
-        Compute a path from start to goal pose.
+        Compute a path from start to goal pose using Navigation2.
 
         Args:
             start_x: Start X coordinate in meters
@@ -355,7 +354,6 @@ class Nav2ClientLibrary(Nav2BaseClient):
             goal_theta: Goal orientation in radians
             frame_id: Reference frame (default: "map")
             timeout: Override default timeout
-            use_native: Override default native preference
 
         Returns:
             List of waypoint dictionaries, or None if path planning failed
@@ -365,30 +363,17 @@ class Nav2ClientLibrary(Nav2BaseClient):
             | Should Not Be None | ${path} |
             | Length Should Be Greater Than | ${path} | 0 |
         """
-        use_native = use_native if use_native is not None else self.use_native
 
-        if use_native and self.native_client:
-            return self.native_client.compute_path_native(
-                start_x,
-                start_y,
-                start_theta,
-                goal_x,
-                goal_y,
-                goal_theta,
-                frame_id,
-                timeout,
-            )
-        else:
-            return self.cli_client.compute_path(
-                start_x,
-                start_y,
-                start_theta,
-                goal_x,
-                goal_y,
-                goal_theta,
-                frame_id,
-                timeout,
-            )
+        return self.cli_client.compute_path(
+            start_x,
+            start_y,
+            start_theta,
+            goal_x,
+            goal_y,
+            goal_theta,
+            frame_id,
+            timeout,
+        )
 
     # ============================================================================
     # COSTMAP OPERATIONS (Smart Selection)
