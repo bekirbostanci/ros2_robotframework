@@ -4,8 +4,7 @@ Common utilities and base classes for Navigation2 Robot Framework Library
 
 import subprocess
 import math
-from typing import List, Dict, Any, Optional, Union, Tuple
-from pathlib import Path
+from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
 from robot.api.deco import keyword
 from robot.api import logger
@@ -100,7 +99,7 @@ class Nav2BaseClient:
 
             return result
 
-        except subprocess.TimeoutExpired as e:
+        except subprocess.TimeoutExpired:
             logger.error(
                 f"ROS2 command timed out after {timeout_value}s: {' '.join(full_command)}"
             )

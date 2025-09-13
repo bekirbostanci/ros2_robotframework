@@ -4,8 +4,7 @@ Common utilities and base classes for ROS2 Robot Framework Library
 
 import subprocess
 import time
-from typing import List, Dict, Any, Optional, Union
-from pathlib import Path
+from typing import List, Dict, Any, Optional
 from robot.api.deco import keyword
 from robot.api import logger
 
@@ -64,7 +63,7 @@ class ROS2BaseClient:
 
             return result
 
-        except subprocess.TimeoutExpired as e:
+        except subprocess.TimeoutExpired:
             logger.error(
                 f"ROS2 command timed out after {timeout_value}s: {' '.join(full_command)}"
             )

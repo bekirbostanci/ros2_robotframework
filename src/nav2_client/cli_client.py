@@ -2,10 +2,9 @@
 CLI-based Navigation2 operations using subprocess calls
 """
 
-import subprocess
 import time
 import math
-from typing import List, Dict, Any, Optional, Union, Tuple
+from typing import List, Dict, Any, Optional
 from robot.api.deco import keyword
 from robot.api import logger
 

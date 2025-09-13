@@ -3,7 +3,7 @@ Main Navigation2 client that combines CLI and native operations
 """
 
 import asyncio
-from typing import List, Dict, Any, Optional, Union
+from typing import List, Dict, Any, Optional
 from robot.api.deco import keyword
 from robot.api import logger
 
@@ -455,37 +455,6 @@ class Nav2ClientLibrary(Nav2BaseClient):
     # ============================================================================
     # NAVIGATION2 STATUS OPERATIONS (Smart Selection)
     # ============================================================================
-
-    @keyword
-    def wait_for_nav2_ready(
-        self,
-        timeout: float = 60.0,
-        check_interval: float = 2.0,
-        use_native: Optional[bool] = None,
-    ) -> bool:
-        """
-        Wait for Navigation2 stack to be ready.
-
-        Args:
-            timeout: Maximum time to wait in seconds
-            check_interval: Time between checks in seconds
-            use_native: Override default native preference
-
-        Returns:
-            True if Navigation2 is ready within timeout
-
-        Example:
-            | ${ready}= | Wait For Nav2 Ready | timeout=120.0 |
-            | Should Be True | ${ready} |
-        """
-        use_native = use_native if use_native is not None else self.use_native
-
-        if use_native and self.native_client:
-            return self.native_client.wait_for_nav2_ready_native(
-                timeout, check_interval
-            )
-        else:
-            return self.cli_client.wait_for_nav2_ready(timeout, check_interval)
 
     @keyword
     def get_navigation_status(

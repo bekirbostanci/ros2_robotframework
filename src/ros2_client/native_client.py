@@ -9,13 +9,13 @@ from rclpy.parameter import Parameter
 from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
 from std_msgs.msg import String, Bool, Int32, Float32
-from geometry_msgs.msg import PoseStamped, Twist, Point, Quaternion, TransformStamped
+from geometry_msgs.msg import PoseStamped, Twist, Point, Quaternion
 from sensor_msgs.msg import LaserScan, Image
 import tf2_ros
 from tf2_ros import TransformException
 import threading
 import time
-from typing import List, Dict, Any, Optional, Callable, Union
+from typing import List, Dict, Any, Optional
 from robot.api.deco import keyword
 from robot.api import logger
 

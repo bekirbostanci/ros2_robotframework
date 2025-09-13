@@ -236,7 +236,6 @@ class ROS2CLIClient(ROS2CLIUtils):
         self,
         launch_file_path: str,
         arguments: Optional[Dict[str, str]] = None,
-        timeout: Optional[float] = None,
     ) -> subprocess.Popen:
         """
         Launch a ROS2 launch file.
@@ -244,7 +243,6 @@ class ROS2CLIClient(ROS2CLIUtils):
         Args:
             launch_file_path: Path to the launch file (can be relative or absolute)
             arguments: Dictionary of launch arguments (key=value pairs)
-            timeout: Override default timeout for this operation
 
         Returns:
             Popen process object for the launched process
@@ -262,7 +260,6 @@ class ROS2CLIClient(ROS2CLIUtils):
 
         # Run the launch command in the background
         full_command = [self._ros2_executable] + command
-        timeout_value = timeout or self.timeout
 
         logger.info(f"Launching ROS2 file: {' '.join(full_command)}")
 
@@ -305,7 +302,6 @@ class ROS2CLIClient(ROS2CLIUtils):
         package_name: str,
         launch_file_name: str,
         arguments: Optional[Dict[str, str]] = None,
-        timeout: Optional[float] = None,
     ) -> subprocess.Popen:
         """
         Launch a ROS2 launch file from a package.
@@ -314,7 +310,6 @@ class ROS2CLIClient(ROS2CLIUtils):
             package_name: Name of the ROS2 package
             launch_file_name: Name of the launch file within the package
             arguments: Dictionary of launch arguments (key=value pairs)
-            timeout: Override default timeout for this operation
 
         Returns:
             Popen process object for the launched process
@@ -333,7 +328,6 @@ class ROS2CLIClient(ROS2CLIUtils):
 
         # Run the launch command in the background
         full_command = [self._ros2_executable] + command
-        timeout_value = timeout or self.timeout
 
         logger.info(f"Launching ROS2 package: {' '.join(full_command)}")
 
@@ -381,7 +375,7 @@ class ROS2CLIClient(ROS2CLIUtils):
 
         Args:
             package_name: Name of the ROS2 package
-            timeout: Override default timeout for this operation
+            timeout: Timeout for the operation
 
         Returns:
             List of launch file names found in the package
@@ -416,7 +410,7 @@ class ROS2CLIClient(ROS2CLIUtils):
                 ],
                 capture_output=True,
                 text=True,
-                timeout=timeout or self.timeout,
+                timeout=timeout,
             )
 
             if find_result.returncode == 0:
@@ -520,7 +514,7 @@ class ROS2CLIClient(ROS2CLIUtils):
                         process.kill()
                     else:
                         os.killpg(os.getpgid(process.pid), 9)
-                    logger.info(f"Force killed launch process after timeout")
+                    logger.info("Force killed launch process after timeout")
 
             return True
         except Exception as e:
@@ -537,7 +531,6 @@ class ROS2CLIClient(ROS2CLIUtils):
         package_name: str,
         executable_name: str,
         arguments: Optional[List[str]] = None,
-        timeout: Optional[float] = None,
     ) -> subprocess.Popen:
         """
         Run a ROS2 node directly.
@@ -546,7 +539,6 @@ class ROS2CLIClient(ROS2CLIUtils):
             package_name: Name of the ROS2 package containing the node
             executable_name: Name of the executable/node
             arguments: List of command-line arguments for the node
-            timeout: Override default timeout for this operation
 
         Returns:
             Popen process object for the running node
@@ -563,7 +555,6 @@ class ROS2CLIClient(ROS2CLIUtils):
 
         # Run the node in the background
         full_command = [self._ros2_executable] + command
-        timeout_value = timeout or self.timeout
 
         logger.info(f"Running ROS2 node: {' '.join(full_command)}")
 
@@ -641,7 +632,7 @@ class ROS2CLIClient(ROS2CLIUtils):
 
         Args:
             package_name: Name of the ROS2 package
-            timeout: Override default timeout for this operation
+            timeout: Timeout for the operation
 
         Returns:
             List of executable names found in the package
@@ -739,7 +730,7 @@ class ROS2CLIClient(ROS2CLIUtils):
             except subprocess.TimeoutExpired:
                 if not force:
                     process.kill()
-                    logger.info(f"Force killed node process after timeout")
+                    logger.info("Force killed node process after timeout")
 
             return True
         except Exception as e:
@@ -888,7 +879,7 @@ class ROS2CLIClient(ROS2CLIUtils):
                     "/robotframework_ros2",
                 }:
                     return False
-            except Exception as e:
+            except Exception:
                 pass
             time.sleep(1)
             timeout -= 1

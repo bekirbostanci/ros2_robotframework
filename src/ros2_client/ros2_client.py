@@ -2,7 +2,6 @@
 Main ROS2 client that combines CLI and native operations
 """
 
-import time
 from typing import List, Dict, Any, Optional, Union
 from robot.api.deco import keyword
 from robot.api import logger
@@ -294,11 +293,10 @@ class ROS2ClientLibrary(ROS2BaseClient):
         package_name: str,
         launch_file_name: str,
         arguments: Optional[Dict[str, str]] = None,
-        timeout: Optional[float] = None,
     ):
         """Launch a package (always uses CLI)."""
         return self.cli_client.launch_package(
-            package_name, launch_file_name, arguments, timeout
+            package_name, launch_file_name, arguments
         )
 
     @keyword
@@ -328,11 +326,10 @@ class ROS2ClientLibrary(ROS2BaseClient):
         package_name: str,
         executable_name: str,
         arguments: Optional[List[str]] = None,
-        timeout: Optional[float] = None,
     ):
         """Run a node (always uses CLI)."""
         return self.cli_client.run_node(
-            package_name, executable_name, arguments, timeout
+            package_name, executable_name, arguments
         )
 
     @keyword

@@ -4,14 +4,13 @@ Native Navigation2 operations using rclpy
 
 import rclpy
 from rclpy.node import Node
-from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy
 from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.action import ActionClient
 import threading
 import time
 import math
-from typing import List, Dict, Any, Optional, Union, Tuple
+from typing import List, Dict, Any, Optional
 from robot.api.deco import keyword
 from robot.api import logger
 
@@ -425,7 +424,7 @@ class Nav2NativeClient(Nav2BaseClient):
             goal_msg.pose = self._create_pose_stamped(x, y, theta, frame_id)
 
             # Send goal without waiting for acceptance or completion
-            future = self._navigate_to_pose_action_client.send_goal_async(goal_msg)
+            self._navigate_to_pose_action_client.send_goal_async(goal_msg)
 
             # Just return True - the goal is sent, we don't wait for anything
             logger.info(
@@ -611,8 +610,8 @@ class Nav2NativeClient(Nav2BaseClient):
                 pose_data = latest_msg["data"]["pose"]
 
                 # Convert quaternion to euler angle (yaw)
-                qx = pose_data["orientation"]["x"]
-                qy = pose_data["orientation"]["y"]
+                # qx = pose_data["orientation"]["x"]
+                # qy = pose_data["orientation"]["y"]
                 qz = pose_data["orientation"]["z"]
                 qw = pose_data["orientation"]["w"]
 
