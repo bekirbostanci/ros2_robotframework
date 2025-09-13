@@ -295,9 +295,7 @@ class ROS2ClientLibrary(ROS2BaseClient):
         arguments: Optional[Dict[str, str]] = None,
     ):
         """Launch a package (always uses CLI)."""
-        return self.cli_client.launch_package(
-            package_name, launch_file_name, arguments
-        )
+        return self.cli_client.launch_package(package_name, launch_file_name, arguments)
 
     @keyword
     def find_launch_files(
@@ -328,9 +326,7 @@ class ROS2ClientLibrary(ROS2BaseClient):
         arguments: Optional[List[str]] = None,
     ):
         """Run a node (always uses CLI)."""
-        return self.cli_client.run_node(
-            package_name, executable_name, arguments
-        )
+        return self.cli_client.run_node(package_name, executable_name, arguments)
 
     @keyword
     def run_node_with_remap(
