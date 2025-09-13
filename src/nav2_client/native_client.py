@@ -792,7 +792,7 @@ class Nav2NativeClient(Nav2BaseClient):
     # ============================================================================
     
     @keyword
-    def wait_for_nav2_ready_native(self, timeout: float = 60.0, check_interval: float = 2.0) -> bool:
+    def wait_for_nav2_ready(self, timeout: float = 20.0, check_interval: float = 2.0) -> bool:
         """
         Wait for Navigation2 stack to be ready using native clients.
         
@@ -807,6 +807,8 @@ class Nav2NativeClient(Nav2BaseClient):
             | ${ready}= | Wait For Nav2 Ready Native | timeout=120.0 |
             | Should Be True | ${ready} |
         """
+        # Clean up the message buffer
+        self.cleanup()
         self._ensure_initialized()
         
         logger.info(f"Waiting for Navigation2 to be ready (native, timeout: {timeout}s)")
@@ -819,15 +821,9 @@ class Nav2NativeClient(Nav2BaseClient):
                 navigate_to_pose_ready = self._navigate_to_pose_action_client.wait_for_server(timeout_sec=1.0)
                 navigate_through_poses_ready = self._navigate_through_poses_action_client.wait_for_server(timeout_sec=1.0)
                 
-                # Check if service clients are available
-                clear_global_ready = self._clear_global_costmap_client.wait_for_service(timeout_sec=1.0)
-                clear_local_ready = self._clear_local_costmap_client.wait_for_service(timeout_sec=1.0)
-                
-                if (navigate_to_pose_ready and navigate_through_poses_ready and 
-                    clear_global_ready and clear_local_ready):
+                if navigate_to_pose_ready and navigate_through_poses_ready:
                     logger.info(f"Navigation2 is ready (native) after {time.time() - start_time:.2f}s")
                     return True
-                
                 time.sleep(check_interval)
                 
             except Exception as e:
