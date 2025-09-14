@@ -119,6 +119,22 @@ robot examples/basics/ros2_basic_test.robot
 robot examples/medium/nav2_simple_monitoring_test.robot
 ```
 
+## Tested with Navigation2
+
+This library has been extensively tested with Navigation2 applications. For testing and validation purposes, we used the following repository:
+
+**Test Repository**: [navigation2_ignition_gazebo_turtlebot3](https://github.com/Onicc/navigation2_ignition_gazebo_turtlebot3)
+
+### Test Coverage
+The library has been validated with:
+- ✅ **Basic Navigation**: Point-to-point navigation tasks
+- ✅ **Obstacle Avoidance**: Dynamic obstacle detection and avoidance
+- ✅ **Path Planning**: Global and local path planning algorithms
+- ✅ **Recovery Behaviors**: Navigation recovery and error handling
+- ✅ **Multi-robot Scenarios**: Testing with multiple robot instances
+
+> **Note**: While extensively tested with this specific repository, the library is designed to work with **any ROS2 project** and can be used with any ROS2-based robotic system, including custom robots, different navigation stacks, and various simulation environments.
+
 ## Test Results
 
 Here's an example of the test output and monitoring capabilities:
@@ -128,3 +144,4 @@ Here's an example of the test output and monitoring capabilities:
 ## Documentation
 
 See the `docs/` directory for comprehensive documentation and examples.
+
