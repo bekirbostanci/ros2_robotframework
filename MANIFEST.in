@@ -1,0 +1,40 @@
+# Include documentation
+include README.md
+include LICENSE
+include CHANGELOG.md
+include requirements.txt
+
+# Include example files
+recursive-include examples *.robot
+recursive-include examples *.py
+recursive-include examples *.md
+
+# Include documentation files
+recursive-include docs *.md
+recursive-include docs *.png
+recursive-include docs *.gif
+
+# Include source files
+recursive-include src *.py
+recursive-include src *.robot
+
+# Include configuration files
+include pyproject.toml
+include .gitignore
+
+# Exclude unnecessary files
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude *.pyd
+global-exclude __pycache__
+global-exclude .git*
+global-exclude .DS_Store
+global-exclude *.egg-info
+global-exclude .pytest_cache
+global-exclude .coverage
+global-exclude .mypy_cache
+global-exclude .tox
+global-exclude venv
+global-exclude .venv
+global-exclude build
+global-exclude dist

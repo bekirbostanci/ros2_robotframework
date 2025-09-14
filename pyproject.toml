@@ -1,0 +1,204 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ros2-robotframework"
+version = "0.1.0"
+description = "A comprehensive Robot Framework library for ROS2 operations"
+readme = "README.md"
+license = "Apache-2.0"
+authors = [
+    {name = "ROS2 Robot Framework Team", email = "bekirbostanci@gmail.com"}
+]
+maintainers = [
+    {name = "ROS2 Robot Framework Team", email = "bekirbostanci@gmail.com"}
+]
+keywords = ["robotframework", "ros2", "robotics", "testing", "automation"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Testing",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "robotframework>=6.0.0",
+    "rclpy>=3.0.0",
+    "std-msgs",
+    "geometry-msgs",
+    "sensor-msgs",
+    "nav-msgs",
+    "tf2-msgs",
+    "tf2-geometry-msgs",
+    "action-msgs",
+    "lifecycle-msgs",
+    "numpy",
+    "typing-extensions",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.0",
+    "pytest-cov>=2.0",
+    "black>=21.0",
+    "flake8>=3.8",
+    "mypy>=0.800",
+    "pre-commit>=2.0",
+]
+nav2 = [
+    "nav2-msgs",
+    "nav2-common",
+]
+test = [
+    "pytest>=6.0",
+    "pytest-cov>=2.0",
+    "pytest-mock>=3.0",
+]
+docs = [
+    "sphinx>=4.0",
+    "sphinx-rtd-theme>=1.0",
+    "myst-parser>=0.18",
+]
+
+[project.urls]
+Homepage = "https://github.com/bekirbostanci/ros2_robotframework"
+Repository = "https://github.com/bekirbostanci/ros2_robotframework"
+Documentation = "https://github.com/bekirbostanci/ros2_robotframework#readme"
+"Bug Reports" = "https://github.com/bekirbostanci/ros2_robotframework/issues"
+Changelog = "https://github.com/bekirbostanci/ros2_robotframework/blob/main/CHANGELOG.md"
+
+[project.scripts]
+ros2-robotframework = "ros2_client.cli_client:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"*" = ["*.py", "*.robot", "*.md", "*.txt", "*.json", "*.yaml", "*.yml"]
+
+[tool.setuptools.exclude-package-data]
+"*" = ["__pycache__", "*.pyc", "*.pyo", "*.pyd", ".git*", "*.egg-info"]
+
+# Entry points for Robot Framework
+[project.entry-points."robotframework_libraries"]
+ROS2ClientLibrary = "ros2_client.ros2_client:ROS2ClientLibrary"
+Nav2ClientLibrary = "nav2_client.nav2_client:Nav2ClientLibrary"
+
+# Black configuration
+[tool.black]
+line-length = 88
+target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+# isort configuration
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+known_first_party = ["ros2_client", "nav2_client"]
+
+# MyPy configuration
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = [
+    "rclpy.*",
+    "std_msgs.*",
+    "geometry_msgs.*",
+    "sensor_msgs.*",
+    "nav_msgs.*",
+    "tf2_msgs.*",
+    "tf2_geometry_msgs.*",
+    "action_msgs.*",
+    "lifecycle_msgs.*",
+    "nav2_msgs.*",
+    "nav2_common.*",
+]
+ignore_missing_imports = true
+
+# Pytest configuration
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q --strict-markers --strict-config"
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+]
+
+# Coverage configuration
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "*/__pycache__/*",
+    "*/venv/*",
+    "*/.*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+
+# Flake8 configuration
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203", "W503"]
+exclude = [
+    ".git",
+    "__pycache__",
+    "build",
+    "dist",
+    "*.egg-info",
+    ".venv",
+    "venv",
+]
