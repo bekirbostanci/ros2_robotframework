@@ -633,7 +633,7 @@ class ROS2NativeClient(ROS2BaseClient):
 
     @keyword
     def get_tf(
-        self, target_frame: str, source_frame: str, timeout: float = 1.0
+        self, target_frame: str, source_frame: str, timeout: float = 5.0
     ) -> Optional[Dict[str, Any]]:
         """
         Get transform between two frames using tf2.
