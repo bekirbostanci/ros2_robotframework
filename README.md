@@ -35,11 +35,6 @@ A comprehensive Robot Framework library for testing and automating ROS2 applicat
 pip install -e .
 ```
 
-For additional features:
-```bash
-pip install -e .[nav2,behaviour-tree]
-```
-
 ## Quick Start
 
 ### Basic Usage
@@ -133,15 +128,3 @@ Here's an example of the test output and monitoring capabilities:
 ## Documentation
 
 See the `docs/` directory for comprehensive documentation and examples.
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests
-5. Submit a pull request
-
-## License
-
-Apache License 2.0
