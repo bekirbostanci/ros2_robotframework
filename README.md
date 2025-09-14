@@ -2,6 +2,8 @@
 
 A comprehensive Robot Framework library for testing and automating ROS2 applications.
 
+![Test Animation](docs/test.gif)
+
 ## Features
 
 ### Core ROS2 Operations
@@ -116,11 +118,17 @@ Test Run Node
 ### Running Examples
 ```bash
 # Run the basic test
-robot examples/simple_ros2_test.robot
+robot examples/basics/ros2_basic_test.robot
 
-# Run the launch and run test
-robot examples/launch_and_run_test.robot
+# Run the Nav2 monitoring test
+robot examples/medium/nav2_simple_monitoring_test.robot
 ```
+
+## Test Results
+
+Here's an example of the test output and monitoring capabilities:
+
+![Test Report](docs/output_report.png)
 
 ## Documentation
 
