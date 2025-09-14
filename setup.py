@@ -25,11 +25,16 @@ setup(
     name="ros2-robotframework",
     version="0.1.0",
     author="ROS2 Robot Framework Team",
-    author_email="",
-    description="A comprehensive Robot Framework library for ROS2 CLI operations",
+    author_email="bekirbostanci@gmail.com",
+    description="A comprehensive Robot Framework library for ROS2 operations",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/your-org/ros2-robotframework",
+    url="https://github.com/bekirbostanci/ros2_robotframework",
+    project_urls={
+        "Bug Reports": "https://github.com/bekirbostanci/ros2_robotframework/issues",
+        "Source": "https://github.com/bekirbostanci/ros2_robotframework",
+        "Documentation": "https://github.com/bekirbostanci/ros2_robotframework#readme",
+    },
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     classifiers=[
@@ -59,9 +64,6 @@ setup(
         "nav2": [
             "nav2-msgs",
             "nav2-common",
-        ],
-        "behaviour-tree": [
-            "behaviortree-cpp-v3",
         ],
     },
     entry_points={
