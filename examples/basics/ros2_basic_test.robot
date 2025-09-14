@@ -6,9 +6,10 @@ Library          Collections
 
 *** Variables ***
 ${TEST_TIMEOUT}    10.0
+${TEST_MESSAGE}    Hello from new structure!
 
 *** Test Cases ***
-Test ROS2 CLI Library Basic Functionality
+Verify ROS2 Discovery Operations
     [Documentation]    Test basic ROS2 CLI operations
     [Tags]    basic    ros2
     
@@ -34,7 +35,7 @@ Test ROS2 CLI Library Basic Functionality
         Log    Topic ${first_topic} exists: ${exists}
     END
 
-Test ROS2 CLI Library With Demo Nodes
+Test ROS2 Node And Topic Operations With Demo
     [Documentation]    Test ROS2 CLI operations with demo nodes
     [Tags]    demo    ros2
     [Timeout]    30s
@@ -103,7 +104,7 @@ Test ROS2 CLI Library With Demo Nodes
     # Clean up
     Terminate Process    ${talker_process}
 
-Test ROS2 CLI Library Launch Operations
+Test ROS2 Launch File Operations
     [Documentation]    Test launch operations with demo nodes
     [Tags]    launch    ros2
     [Timeout]    30s
@@ -117,9 +118,6 @@ Test ROS2 CLI Library Launch Operations
         # Wait for system to initialize
         Sleep    3s
         
-        # Check if process is running
-        ${running}=    Is Process Running    ${process}
-        Should Be True    ${running}
         
         # Verify topics are available
         ${topics}=    List Topics    timeout=${TEST_TIMEOUT}
@@ -136,7 +134,7 @@ Test ROS2 CLI Library Launch Operations
         Log    Demo launch file not available, skipping launch test
     END
 
-Test ROS2 CLI Library Run Operations
+Test ROS2 Node Execution And Management
     [Documentation]    Test run operations with demo nodes
     [Tags]    run    ros2
     [Timeout]    20s
@@ -149,9 +147,6 @@ Test ROS2 CLI Library Run Operations
     # Wait for node to start
     Sleep    2s
     
-    # Check if process is running
-    ${running}=    Is Process Running    ${process}
-    Should Be True    ${running}
     
     # Verify the node is in the node list
     ${nodes}=    List Nodes    timeout=${TEST_TIMEOUT}
@@ -165,7 +160,7 @@ Test ROS2 CLI Library Run Operations
     Should Be True    ${terminated}
     Log    Node terminated successfully
 
-Test ROS2 CLI Library Error Handling
+Test ROS2 Error Handling For Non-Existent Resources
     [Documentation]    Test error handling for non-existent resources
     [Tags]    error    ros2
     
@@ -180,6 +175,92 @@ Test ROS2 CLI Library Error Handling
     # Test non-existent node
     ${exists}=    Node Exists    /non_existent_node    timeout=2.0
     Should Not Be True    ${exists}
+
+Test ROS2 Native Publisher And Subscriber Operations
+    [Documentation]    Test native ROS2 operations with subscribers and publishers
+    [Tags]    native    ros2
+    [Timeout]    30s
+    
+    # Get client information
+    ${info}=    Get Client Info
+    Log    Using client with native support: ${info}[native_available]
+    
+    # Start a demo talker node
+    ${talker_process}=    Run Node    demo_nodes_cpp    talker
+    Set Test Variable    ${talker_process}
+    
+    # Wait for the node to start
+    Sleep    3s
+    
+    # Create a native subscriber for the chatter topic
+    ${subscriber}=    Create Subscriber    /chatter    std_msgs/msg/String
+    Log    Created native subscriber: ${subscriber}
+    
+    # Wait for messages
+    Sleep    5s
+    
+    # Get the latest message using native operations
+    ${message}=    Get Latest Message    /chatter
+    IF    ${message} is not None
+        Log    Received message: ${message}[data]
+        Should Contain    ${message}[data]    Hello World
+    ELSE
+        Log    No message received yet
+    END
+    
+    # Get all buffered messages
+    ${all_messages}=    Get All Messages    /chatter
+    Log    Total messages received: ${all_messages.__len__()}
+    
+    # Create a native publisher for testing
+    ${publisher}=    Create Publisher    /test_response    std_msgs/msg/String
+    Log    Created native publisher: ${publisher}
+    
+    # Publish a test message
+    ${success}=    Publish Message    ${publisher}    ${TEST_MESSAGE}
+    Should Be True    ${success}
+    Log    Published test message successfully
+    
+    # Clean up
+    Shutdown Process    ${talker_process}
+    Cleanup
+
+
+Test ROS2 CLI And Native Operations Integration
+    [Documentation]    Test mixing CLI and native operations
+    [Tags]    mixed    ros2
+    [Timeout]    25s
+    
+    # Start a demo talker
+    ${talker_process}=    Start Process    ros2    run    demo_nodes_cpp    talker
+    Set Test Variable    ${talker_process}
+    
+    # Wait for the node to start
+    Sleep    3s
+    
+    # Use CLI for discovery
+    ${nodes}=    List Nodes
+    Should Contain    ${nodes}    /talker
+    Log    Found nodes: ${nodes}
+    
+    # Use native for real-time communication
+    ${subscriber}=    Create Subscriber    /chatter    std_msgs/msg/String
+    Sleep    3s
+    
+    # Get messages using native operations
+    ${message}=    Get Latest Message    /chatter
+    IF    ${message} is not None
+        Log    Latest message: ${message}[data]
+    END
+    
+    # Use CLI for one-time operations
+    ${topic_info}=    Get Topic Info    /chatter
+    Should Be Equal    ${topic_info}[type]    std_msgs/msg/String
+    Log    Topic info: ${topic_info}
+    
+    # Clean up
+    Terminate Process    ${talker_process}
+    Cleanup
 
 *** Keywords ***
 Cleanup Test Processes

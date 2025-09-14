@@ -1,13 +1,16 @@
 # Core dependencies
 robotframework>=6.0.0
 
-# ROS2 dependencies (these are typically installed with ROS2)
-# rclpy>=3.0.0  # Usually installed with ROS2
-# std-msgs      # Usually installed with ROS2
-# geometry-msgs # Usually installed with ROS2
-# sensor-msgs   # Usually installed with ROS2
-# nav-msgs      # Usually installed with ROS2
-# tf2-msgs      # Usually installed with ROS2
+# ROS2 Python dependencies
+rclpy>=3.0.0
+std-msgs
+geometry-msgs
+sensor-msgs
+nav-msgs
+tf2-msgs
+tf2-geometry-msgs
+action-msgs
+lifecycle-msgs
 
 # Additional utilities
 numpy

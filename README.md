@@ -2,6 +2,8 @@
 
 A comprehensive Robot Framework library for testing and automating ROS2 applications.
 
+![Test Animation](docs/test.gif)
+
 ## Features
 
 ### Core ROS2 Operations
@@ -12,11 +14,20 @@ A comprehensive Robot Framework library for testing and automating ROS2 applicat
 - **Launch Operations**: Launch files and packages, find launch files, manage launch processes
 - **Run Operations**: Run nodes directly, run with remapping, find executables, manage node processes
 
+### Native ROS2 Python Node Operations (NEW!)
+- **Native Topic Operations**: Direct publishing/subscribing using ROS2 Python nodes
+- **Native Service Operations**: Direct service calls using ROS2 Python service clients
+- **Native Parameter Operations**: Direct parameter access using ROS2 Python parameter clients
+- **Native TF2 Operations**: Direct transform operations using ROS2 Python TF2
+- **Message Storage**: Automatic message buffering and retrieval
+- **Real-time Communication**: Low-latency, high-performance ROS2 communication
+
 ### Advanced Features
 - **Process Management**: Start, monitor, and terminate ROS2 processes
 - **Discovery**: Find launch files and executables in packages
 - **Remapping**: Topic and service remapping for node execution
 - **Timeout Support**: Configurable timeouts for all operations
+- **Hybrid Mode**: Automatic fallback from native to CLI operations when needed
 
 ## Installation
 
@@ -24,17 +35,12 @@ A comprehensive Robot Framework library for testing and automating ROS2 applicat
 pip install -e .
 ```
 
-For additional features:
-```bash
-pip install -e .[nav2,behaviour-tree]
-```
-
 ## Quick Start
 
 ### Basic Usage
 ```robot
 *** Settings ***
-Library    ROS2ClientLibrary
+Library    ROS2ClientLibrary    use_native_node=True
 
 *** Test Cases ***
 Test Basic ROS2 Operations
@@ -49,6 +55,20 @@ Test Basic ROS2 Operations
     # Get topic information
     ${info}=    Get Topic Info    /chatter
     Log    Topic info: ${info}
+
+Test Native ROS2 Operations
+    # Subscribe to a topic using native ROS2 node
+    ${success}=    Native Subscribe Topic    /chatter    std_msgs/msg/String
+    Should Be True    ${success}
+    
+    # Publish a message using native ROS2 node
+    ${success}=    Native Publish String    /chatter    "Hello World!"
+    Should Be True    ${success}
+    
+    # Wait for and get the message
+    ${message}=    Native Wait For Message    /chatter    timeout=5.0
+    Should Not Be None    ${message}
+    Log    Received: ${message}[data]
 ```
 
 ### Launch and Run Operations
@@ -93,24 +113,18 @@ Test Run Node
 ### Running Examples
 ```bash
 # Run the basic test
-robot examples/simple_ros2_test.robot
+robot examples/basics/ros2_basic_test.robot
 
-# Run the launch and run test
-robot examples/launch_and_run_test.robot
+# Run the Nav2 monitoring test
+robot examples/medium/nav2_simple_monitoring_test.robot
 ```
+
+## Test Results
+
+Here's an example of the test output and monitoring capabilities:
+
+![Test Report](docs/output_report.png)
 
 ## Documentation
 
 See the `docs/` directory for comprehensive documentation and examples.
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests
-5. Submit a pull request
-
-## License
-
-Apache License 2.0
