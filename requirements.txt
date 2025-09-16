@@ -15,3 +15,7 @@ lifecycle-msgs
 # Additional utilities
 numpy
 typing-extensions
+
+# Required dependencies for rclpy
+PyYAML>=6.0
+setuptools>=61.0

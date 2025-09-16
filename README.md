@@ -31,9 +31,23 @@ A comprehensive Robot Framework library for testing and automating ROS2 applicat
 
 ## Installation
 
+### From Source
 ```bash
+git clone https://github.com/bekirbostanci/ros2_robotframework.git
+cd ros2_robotframework
 pip install -e .
 ```
+
+### From PyPI (when published)
+```bash
+pip install ros2-robotframework
+```
+
+### Dependencies
+This library requires ROS2 to be installed and sourced. Make sure you have:
+- ROS2 (tested with Jazz and Humble)
+- Python 3.8 or higher
+- All ROS2 message packages (std_msgs, geometry_msgs, etc.)
 
 ## Quick Start
 
