@@ -8,6 +8,8 @@ A comprehensive Robot Framework library for testing and automating ROS2 applicat
 
 **Robot Framework** is an open-source automation framework that uses keyword-driven testing with simple, readable syntax. It's perfect for ROS2 because:
 
+> 📚 **Learn more**: [Robot Framework Documentation](https://robotframework.org/)
+
 - **🔧 Keyword-Driven**: Complex ROS2 operations become simple keywords (`Navigate To Pose`, `Wait For Topic`)
 - **📊 Rich Reporting**: Built-in HTML reports with detailed logs for debugging
 - **🔄 CI/CD Ready**: Seamlessly integrates with automated testing pipelines
