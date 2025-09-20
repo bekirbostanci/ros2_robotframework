@@ -324,9 +324,10 @@ class ROS2ClientLibrary(ROS2BaseClient):
         package_name: str,
         executable_name: str,
         arguments: Optional[List[str]] = None,
+        setup_script: Optional[str] = None,
     ):
         """Run a node (always uses CLI)."""
-        return self.cli_client.run_node(package_name, executable_name, arguments)
+        return self.cli_client.run_node(package_name, executable_name, arguments, setup_script)
 
     @keyword
     def run_node_with_remap(
@@ -335,11 +336,12 @@ class ROS2ClientLibrary(ROS2BaseClient):
         executable_name: str,
         remaps: Optional[Dict[str, str]] = None,
         arguments: Optional[List[str]] = None,
+        setup_script: Optional[str] = None,
         timeout: Optional[float] = None,
     ):
         """Run a node with remapping (always uses CLI)."""
         return self.cli_client.run_node_with_remap(
-            package_name, executable_name, remaps, arguments, timeout
+            package_name, executable_name, remaps, arguments, setup_script
         )
 
     @keyword

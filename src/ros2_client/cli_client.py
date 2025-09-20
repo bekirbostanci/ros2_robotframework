@@ -531,6 +531,7 @@ class ROS2CLIClient(ROS2CLIUtils):
         package_name: str,
         executable_name: str,
         arguments: Optional[List[str]] = None,
+        setup_script: Optional[str] = None,
     ) -> subprocess.Popen:
         """
         Run a ROS2 node directly.
@@ -539,6 +540,7 @@ class ROS2CLIClient(ROS2CLIUtils):
             package_name: Name of the ROS2 package containing the node
             executable_name: Name of the executable/node
             arguments: List of command-line arguments for the node
+            setup_script: Optional path to a setup script to source before running the node
 
         Returns:
             Popen process object for the running node
@@ -546,6 +548,7 @@ class ROS2CLIClient(ROS2CLIUtils):
         Example:
             | ${process}= | Run Node | demo_nodes_cpp | talker |
             | ${process}= | Run Node | nav2_controller | controller_server | arguments=['--ros-args', '-p', 'use_sim_time:=True'] |
+            | ${process}= | Run Node | pyrobosim_ros | demo.py | setup_script=/path/to/setup.bash |
         """
         command = ["run", package_name, executable_name]
 
@@ -559,10 +562,22 @@ class ROS2CLIClient(ROS2CLIUtils):
         logger.info(f"Running ROS2 node: {' '.join(full_command)}")
 
         try:
+            # Build shell command with optional setup script
+            if setup_script:
+                shell_command = f"source {setup_script} && {' '.join(full_command)}"
+                logger.info(f"Using setup script: {setup_script}")
+            else:
+                shell_command = ' '.join(full_command)
+                logger.info("Running without setup script")
+            
             process = subprocess.Popen(
-                full_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+                shell_command, 
+                stdout=subprocess.PIPE, 
+                stderr=subprocess.PIPE, 
+                text=True,
+                shell=True,
+                executable='/bin/bash'
             )
-
             logger.info(f"Started node process with PID: {process.pid}")
             return process
 
@@ -577,6 +592,7 @@ class ROS2CLIClient(ROS2CLIUtils):
         executable_name: str,
         remaps: Optional[Dict[str, str]] = None,
         arguments: Optional[List[str]] = None,
+        setup_script: Optional[str] = None,
     ) -> subprocess.Popen:
         """
         Run a ROS2 node with topic/service remapping.
@@ -586,12 +602,14 @@ class ROS2CLIClient(ROS2CLIUtils):
             executable_name: Name of the executable/node
             remaps: Dictionary of remappings (old_topic -> new_topic)
             arguments: List of additional command-line arguments
+            setup_script: Optional path to a setup script to source before running the node
 
         Returns:
             Popen process object for the running node
 
         Example:
             | ${process}= | Run Node With Remap | demo_nodes_cpp | talker | remaps={'/chatter': '/my_chatter'} |
+            | ${process}= | Run Node With Remap | pyrobosim_ros | demo.py | setup_script=/path/to/setup.bash |
         """
         command = ["run", package_name, executable_name]
 
@@ -610,9 +628,23 @@ class ROS2CLIClient(ROS2CLIUtils):
         logger.info(f"Running ROS2 node with remaps: {' '.join(full_command)}")
 
         try:
-            process = subprocess.Popen(
-                full_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
-            )
+            # Build shell command with optional setup script
+            if setup_script:
+                shell_command = f"source {setup_script} && {' '.join(full_command)}"
+                logger.info(f"Using setup script: {setup_script}")
+                process = subprocess.Popen(
+                    shell_command, 
+                    stdout=subprocess.PIPE, 
+                    stderr=subprocess.PIPE, 
+                    text=True,
+                    shell=True,
+                    executable='/bin/bash'
+                )
+            else:
+                logger.info("Running without setup script")
+                process = subprocess.Popen(
+                    full_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+                )
 
             logger.info(f"Started node process with PID: {process.pid}")
             return process
