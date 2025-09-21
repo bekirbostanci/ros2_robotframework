@@ -8,22 +8,36 @@ ${WAIT_TIME}             5s
 ${PYROBOSIM_SETUP}       /home/bekir/ros2_ws/src/pyrobosim/setup/source_pyrobosim.bash
 
 *** Test Cases ***
-Test Shutdown PyRobo Simulation
-    [Documentation]    Test shutdown Pyrobo simulation
-    [Tags]    pyrobosim    shutdown
-    [Setup]    Setup PyRobo Simulation
-    [Teardown]    Clean Up Pyrobo Simulation
-    
-    Sleep    1s    
-
 Test PyRobo Simulation Send Command
     [Documentation]    Test Pyrobo simulation send command
     [Tags]    pyrobosim    send    command
     [Setup]    Setup PyRobo Simulation
     [Teardown]    Clean Up PyRobo Simulation
     
-    Call Action Service    /execute_action    pyrobosim_msgs/action/ExecuteTaskAction    "forward 1.0"
+    # Test the new action send_goal functionality
+    ${result}=    Send Action Goal    /execute_action    pyrobosim_msgs/action/ExecuteTaskAction    {"action": {"robot": "robot", "type": "navigate", "source_location": "kitchen", "target_location": "desk"}, "realtime_factor": 1.0}
+    Log    Action result: ${result}
+    Should Be True    ${result}[success]    Action should be sent successfully
     Sleep    1s
+
+Test PyRobo Action Navigation
+    [Documentation]    Test Pyrobo action navigation with exact command from user
+    [Tags]    pyrobosim    action    navigation
+    [Setup]    Setup PyRobo Simulation
+    [Teardown]    Clean Up PyRobo Simulation
+    
+    # Wait for the simulation to be ready
+    Sleep    2s
+    
+    # Send the exact action command as requested by user
+    ${result}=    Send Action Goal    /execute_action    pyrobosim_msgs/action/ExecuteTaskAction    {"action": {"robot": "robot", "type": "navigate", "source_location": "kitchen", "target_location": "desk"}, "realtime_factor": 1.0}
+    Log    Action navigation result: ${result}
+    Should Be True    ${result}[success]    Action navigation should be sent successfully
+    
+    # Log the raw output for debugging
+    Log    Raw action output: ${result}[raw_output]
+    
+    Sleep    3s
 
 *** Keywords ***
 Setup PyRobo Simulation

@@ -152,6 +152,41 @@ class ROS2ClientLibrary(ROS2BaseClient):
         return self.cli_client.get_action_list()
 
     @keyword
+    def send_action_goal(
+        self,
+        action_name: str,
+        action_type: str,
+        goal_data: str,
+        timeout: Optional[float] = None,
+    ) -> Dict[str, Any]:
+        """
+        Send a goal to a ROS2 action server (always uses CLI).
+
+        Args:
+            action_name: Name of the action (e.g., '/execute_action')
+            action_type: Type of the action (e.g., 'pyrobosim_msgs/action/ExecuteTaskAction')
+            goal_data: Goal data as a JSON string
+            timeout: Override default timeout for this operation
+
+        Returns:
+            Dictionary containing the result of the action
+
+        Example:
+            | ${result}= | Send Action Goal | /execute_action | pyrobosim_msgs/action/ExecuteTaskAction | '{"action": {"robot": "robot", "type": "navigate", "source_location": "kitchen", "target_location": "desk"}, "realtime_factor": 1.0}' |
+        """
+        return self.cli_client.send_action_goal(action_name, action_type, goal_data, timeout)
+
+    @keyword
+    def get_action_info(self, action_name: str, timeout: Optional[float] = None) -> Dict[str, Any]:
+        """Get detailed information about an action (always uses CLI)."""
+        return self.cli_client.get_action_info(action_name, timeout)
+
+    @keyword
+    def action_exists(self, action_name: str, timeout: Optional[float] = None) -> bool:
+        """Check if an action exists (always uses CLI)."""
+        return self.cli_client.action_exists(action_name, timeout)
+
+    @keyword
     def list_services(self, timeout: Optional[float] = None) -> List[str]:
         """List all available services (always uses CLI)."""
         return self.cli_client.list_services(timeout)

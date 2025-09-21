@@ -227,6 +227,149 @@ class ROS2CLIClient(ROS2CLIUtils):
             line.strip() for line in result.stdout.strip().split("\n") if line.strip()
         ]
 
+    @keyword
+    def send_action_goal(
+        self,
+        action_name: str,
+        action_type: str,
+        goal_data: str,
+        timeout: Optional[float] = None,
+    ) -> Dict[str, Any]:
+        """
+        Send a goal to a ROS2 action server.
+
+        Args:
+            action_name: Name of the action (e.g., '/execute_action')
+            action_type: Type of the action (e.g., 'pyrobosim_msgs/action/ExecuteTaskAction')
+            goal_data: Goal data as a JSON string
+            timeout: Override default timeout for this operation
+
+        Returns:
+            Dictionary containing the result of the action
+
+        Example:
+            | ${result}= | Send Action Goal | /execute_action | pyrobosim_msgs/action/ExecuteTaskAction | '{"action": {"robot": "robot", "type": "navigate", "source_location": "kitchen", "target_location": "desk"}, "realtime_factor": 1.0}' |
+        """
+        try:
+            # Use ros2 action send_goal command
+            command = ["action", "send_goal", action_name, action_type, goal_data]
+            result = self._run_ros2_command(command, timeout=timeout)
+
+            if result.returncode != 0:
+                logger.error(f"Failed to send action goal to '{action_name}': {result.stderr}")
+                return {
+                    "success": False,
+                    "error": result.stderr,
+                    "stdout": result.stdout
+                }
+
+            # Parse the output to extract useful information
+            output_lines = result.stdout.strip().split("\n")
+            action_result = {
+                "success": True,
+                "action_name": action_name,
+                "action_type": action_type,
+                "goal_data": goal_data,
+                "raw_output": result.stdout,
+                "return_code": result.returncode
+            }
+
+            # Try to extract goal ID and status from output
+            for line in output_lines:
+                if "Goal accepted" in line or "goal_id" in line.lower():
+                    action_result["goal_accepted"] = True
+                elif "Goal rejected" in line or "rejected" in line.lower():
+                    action_result["goal_accepted"] = False
+                elif "Result:" in line:
+                    action_result["result"] = line.replace("Result:", "").strip()
+
+            logger.info(f"Successfully sent action goal to '{action_name}'")
+            return action_result
+
+        except Exception as e:
+            logger.error(f"Exception while sending action goal to '{action_name}': {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "action_name": action_name,
+                "action_type": action_type,
+                "goal_data": goal_data
+            }
+
+    @keyword
+    def get_action_info(self, action_name: str, timeout: Optional[float] = None) -> Dict[str, Any]:
+        """
+        Get detailed information about an action.
+
+        Args:
+            action_name: Name of the action
+            timeout: Override default timeout for this operation
+
+        Returns:
+            Dictionary containing action information
+
+        Example:
+            | ${info}= | Get Action Info | /execute_action |
+        """
+        try:
+            result = self._run_ros2_command(["action", "info", action_name], timeout=timeout)
+            
+            if result.returncode != 0:
+                logger.error(f"Failed to get action info for '{action_name}': {result.stderr}")
+                return {
+                    "success": False,
+                    "error": result.stderr,
+                    "action_name": action_name
+                }
+
+            # Parse the output to extract useful information
+            info = {"success": True, "action_name": action_name}
+            lines = result.stdout.strip().split("\n")
+            
+            for line in lines:
+                if "Action clients:" in line:
+                    info["clients"] = line.replace("Action clients:", "").strip()
+                elif "Action servers:" in line:
+                    info["servers"] = line.replace("Action servers:", "").strip()
+                elif "Action type:" in line:
+                    info["action_type"] = line.replace("Action type:", "").strip()
+
+            logger.info(f"Successfully retrieved action info for '{action_name}'")
+            return info
+
+        except Exception as e:
+            logger.error(f"Exception while getting action info for '{action_name}': {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "action_name": action_name
+            }
+
+    @keyword
+    def action_exists(self, action_name: str, timeout: Optional[float] = None) -> bool:
+        """
+        Check if an action exists.
+
+        Args:
+            action_name: Name of the action to check
+            timeout: Override default timeout for this operation
+
+        Returns:
+            True if action exists, False otherwise
+
+        Example:
+            | ${exists}= | Action Exists | /execute_action |
+            | Should Be True | ${exists} |
+        """
+        try:
+            actions = self.get_action_list(timeout)
+            exists = action_name in actions
+            logger.info(f"Action '{action_name}' exists: {exists}")
+            return exists
+        except Exception as e:
+            logger.error(f"Exception while checking if action '{action_name}' exists: {e}")
+            return False
+
     # ============================================================================
     # LAUNCH OPERATIONS
     # ============================================================================
