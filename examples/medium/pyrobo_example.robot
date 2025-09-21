@@ -81,11 +81,12 @@ Test PyRobo Multiple Robot
     [Setup]    Setup PyRobo Multiple Robot Simulation
     [Teardown]    Clean Up PyRobo Simulation
     
-    # Test the new async action send_goal functionality
+    # Test the new async action send_goal functionality - fire and forget (parallel execution)
+    # Both robots will start their navigation tasks simultaneously without waiting for completion
     Async Send Action Goal    /execute_action    pyrobosim_msgs/action/ExecuteTaskAction    {"action": {"robot": "robot0", "type": "navigate", "source_location": "kitchen", "target_location": "table"}, "realtime_factor": 1.0}
     
     Async Send Action Goal    /execute_action    pyrobosim_msgs/action/ExecuteTaskAction    {"action": {"robot": "robot1", "type": "navigate", "source_location": "kitchen", "target_location": "my_desk"}, "realtime_factor": 1.0}
-
+    
 
     FOR    ${i}    IN RANGE    20
         Log    Waiting for 1 second...
