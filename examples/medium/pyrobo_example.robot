@@ -50,8 +50,6 @@ Test PyRobo Action Navigation
     # Get robot position after navigation using native service call
     ${world_state}=    Call Service    /request_world_state    timeout=10.0
     Log    World state response: ${world_state}
-    Log    World state : ${world_state}[state]
-    Log    World state : ${world_state}[state][robots]
     
     # Extract robot position from the response (now properly formatted)
     ${robot_position}=    Set Variable    ${world_state}[state][robots][0][pose][position]
@@ -77,7 +75,39 @@ Test PyRobo Action Navigation
     Log    Service clients created: ${service_info}[clients]
     Log    Service client for /request_world_state: ${service_info}[clients][/request_world_state]
 
+Test PyRobo Multiple Robot
+    [Documentation]    Test Pyrobo multiple robot
+    [Tags]    pyrobosim    multiple    robot
+    [Setup]    Setup PyRobo Multiple Robot Simulation
+    [Teardown]    Clean Up PyRobo Simulation
+    
+    # Test the new async action send_goal functionality
+    Async Send Action Goal    /execute_action    pyrobosim_msgs/action/ExecuteTaskAction    {"action": {"robot": "robot0", "type": "navigate", "source_location": "kitchen", "target_location": "desk"}, "realtime_factor": 1.0}
+    
+    Async Send Action Goal    /execute_action    pyrobosim_msgs/action/ExecuteTaskAction    {"action": {"robot": "robot1", "type": "navigate", "source_location": "kitchen", "target_location": "my_desk"}, "realtime_factor": 1.0}
+    Sleep    2s
+    
 *** Keywords ***
+Setup PyRobo Multiple Robot Simulation
+    [Documentation]    Setup Pyrobo simulation
+
+    # Launch the Pyrobo simulations
+    Log    Starting Pyrobo simulation launch...
+
+    # Test with setup script
+    ${process}=    Run Node     pyrobosim_ros   demo.py --ros-args -p world_file:=test_world_multirobot.yaml    setup_script=${PYROBOSIM_SETUP}
+    
+    # Get process output for debugging
+    ${output}=    Get Process Output    ${process}
+    Log    Process stdout: ${output}[stdout]
+    Log    Process stderr: ${output}[stderr]
+
+    # Check if we can see the node
+    ${nodes}=    List Nodes
+    Log    Available nodes: ${nodes}
+    
+    RETURN    ${process} 
+
 Setup PyRobo Simulation
     [Documentation]    Setup Pyrobo simulation
 

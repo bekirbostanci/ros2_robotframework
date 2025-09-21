@@ -2,6 +2,7 @@
 Main ROS2 client that combines CLI and native operations
 """
 
+import asyncio
 from typing import Any, Dict, List, Optional, Union
 
 from robot.api import logger
@@ -179,6 +180,69 @@ class ROS2ClientLibrary(ROS2BaseClient):
         return self.cli_client.send_action_goal(
             action_name, action_type, goal_data, timeout
         )
+
+    @keyword
+    async def async_send_action_goal(
+        self,
+        action_name: str,
+        action_type: str,
+        goal_data: str,
+        timeout: Optional[float] = None,
+    ) -> None:
+        """
+        Send a goal to a ROS2 action server asynchronously (fire and forget).
+
+        This function starts the action goal but doesn't wait for completion.
+        It returns immediately after sending the goal.
+
+        Args:
+            action_name: Name of the action (e.g., '/execute_action')
+            action_type: Type of the action (e.g., 'pyrobosim_msgs/action/ExecuteTaskAction')
+            goal_data: Goal data as a JSON string
+            timeout: Override default timeout for this operation (not used in fire-and-forget mode)
+
+        Returns:
+            None
+
+        Example:
+            | Async Send Action Goal | /execute_action | pyrobosim_msgs/action/ExecuteTaskAction | '{"action": {"robot": "robot0", "type": "navigate", "source_location": "kitchen", "target_location": "desk"}, "realtime_factor": 1.0}' |
+        """
+        # Fire and forget - just send the goal without waiting for result
+        asyncio.create_task(
+            self._send_action_goal_fire_forget(action_name, action_type, goal_data)
+        )
+
+    async def _send_action_goal_fire_forget(
+        self,
+        action_name: str,
+        action_type: str,
+        goal_data: str,
+    ) -> None:
+        """
+        Internal method to send action goal without waiting for result.
+
+        This method uses a very short timeout to just send the goal and return immediately.
+        """
+        try:
+            # Use a very short timeout to just send the goal and return
+            # The goal will continue executing in the background
+            command = ["action", "send_goal", action_name, action_type, goal_data]
+
+            # Run the command with a very short timeout to just initiate the goal
+            # This will send the goal but not wait for completion
+            result = await asyncio.create_subprocess_exec(
+                "ros2",
+                *command,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+
+            # Don't wait for the process to complete - just start it and return
+            # The action will continue running in the background
+            logger.info(f"Started action goal for '{action_name}' (fire and forget)")
+
+        except Exception as e:
+            logger.error(f"Failed to start action goal for '{action_name}': {e}")
 
     @keyword
     def get_action_info(
