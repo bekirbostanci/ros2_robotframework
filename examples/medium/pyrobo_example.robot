@@ -82,12 +82,50 @@ Test PyRobo Multiple Robot
     [Teardown]    Clean Up PyRobo Simulation
     
     # Test the new async action send_goal functionality
-    Async Send Action Goal    /execute_action    pyrobosim_msgs/action/ExecuteTaskAction    {"action": {"robot": "robot0", "type": "navigate", "source_location": "kitchen", "target_location": "desk"}, "realtime_factor": 1.0}
+    Async Send Action Goal    /execute_action    pyrobosim_msgs/action/ExecuteTaskAction    {"action": {"robot": "robot0", "type": "navigate", "source_location": "kitchen", "target_location": "table"}, "realtime_factor": 1.0}
     
     Async Send Action Goal    /execute_action    pyrobosim_msgs/action/ExecuteTaskAction    {"action": {"robot": "robot1", "type": "navigate", "source_location": "kitchen", "target_location": "my_desk"}, "realtime_factor": 1.0}
-    Sleep    2s
-    
+
+
+    FOR    ${i}    IN RANGE    20
+        Log    Waiting for 1 second...
+        Sleep    1s
+
+        ${completed}=    Set Variable    True
+        ${robot0_location}=    Check Robot Last Visited Location    robot0
+        ${robot0_location_compare}=    Run Keyword And Return Status    Should Be Equal As Strings    ${robot0_location}    table0_tabletop
+        ${robot1_location}=    Check Robot Last Visited Location    robot1
+        ${robot1_location_compare}=    Run Keyword And Return Status    Should Be Equal As Strings    ${robot1_location}    my_desk_desktop
+
+
+        IF    ${robot0_location_compare} and ${robot1_location_compare}
+            Log    Both robots have reached their destinations!
+            Exit For Loop
+        END
+    END
+
 *** Keywords ***
+Check Robot Last Visited Location
+    [Arguments]    ${robot_name}
+    [Documentation]    Check robot last visited location
+
+    # Create service client for world state request (using native service calls for better performance)
+    ${world_state_client}=    Create Service Client    /request_world_state    pyrobosim_msgs/srv/RequestWorldState
+    
+    # Check if service is available
+    ${service_available}=    Service Available    /request_world_state    timeout=5.0
+    Should Be True    ${service_available}    World state service should be available
+    
+    # Get robot position after navigation using native service call
+    ${world_state}=    Call Service    /request_world_state    timeout=10.0
+    FOR    ${robot}    IN    @{world_state}[state][robots]
+        Log    Robot: ${robot}[last_visited_location]
+        IF    $robot["name"] == $robot_name
+            RETURN    ${robot}[last_visited_location]
+        END
+    END
+    RETURN    None
+
 Setup PyRobo Multiple Robot Simulation
     [Documentation]    Setup Pyrobo simulation
 
