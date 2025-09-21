@@ -192,13 +192,6 @@ class ROS2ClientLibrary(ROS2BaseClient):
         """List all available services (always uses CLI)."""
         return self.cli_client.list_services(timeout)
 
-    @keyword
-    def get_service_info(
-        self, service_name: str, timeout: Optional[float] = None
-    ) -> Dict[str, Any]:
-        """Get detailed information about a service (always uses CLI)."""
-        return self.cli_client.get_service_info(service_name, timeout)
-
     # ============================================================================
     # SERVICE OPERATIONS (Native Only)
     # ============================================================================
