@@ -36,3 +36,21 @@ tasks:
     desc: "Type check Python code"
     cmds:
       - "{{.PYTHON}} -m mypy src/"
+
+  # Build package for PyPI
+  build:
+    desc: "Build package for PyPI"
+    cmds:
+      - "{{.PIP}} install build twine"
+      - "{{.PYTHON}} -m build"
+      - "echo 'Package built in dist/ directory'"
+
+  # Clean build artifacts
+  clean:
+    desc: "Clean build artifacts"
+    cmds:
+      - "rm -rf build/"
+      - "rm -rf dist/"
+      - "rm -rf *.egg-info/"
+      - "find . -type d -name __pycache__ -exec rm -rf {} +"
+      - "find . -type f -name '*.pyc' -delete"
