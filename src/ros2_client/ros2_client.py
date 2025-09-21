@@ -2,13 +2,14 @@
 Main ROS2 client that combines CLI and native operations
 """
 
-from typing import List, Dict, Any, Optional, Union
-from robot.api.deco import keyword
-from robot.api import logger
+from typing import Any, Dict, List, Optional, Union
 
-from .utils import ROS2BaseClient
+from robot.api import logger
+from robot.api.deco import keyword
+
 from .cli_client import ROS2CLIClient
 from .native_client import ROS2NativeClient
+from .utils import ROS2BaseClient
 
 
 class ROS2ClientLibrary(ROS2BaseClient):
@@ -175,10 +176,14 @@ class ROS2ClientLibrary(ROS2BaseClient):
         Example:
             | ${result}= | Send Action Goal | /execute_action | pyrobosim_msgs/action/ExecuteTaskAction | '{"action": {"robot": "robot", "type": "navigate", "source_location": "kitchen", "target_location": "desk"}, "realtime_factor": 1.0}' |
         """
-        return self.cli_client.send_action_goal(action_name, action_type, goal_data, timeout)
+        return self.cli_client.send_action_goal(
+            action_name, action_type, goal_data, timeout
+        )
 
     @keyword
-    def get_action_info(self, action_name: str, timeout: Optional[float] = None) -> Dict[str, Any]:
+    def get_action_info(
+        self, action_name: str, timeout: Optional[float] = None
+    ) -> Dict[str, Any]:
         """Get detailed information about an action (always uses CLI)."""
         return self.cli_client.get_action_info(action_name, timeout)
 
@@ -204,14 +209,14 @@ class ROS2ClientLibrary(ROS2BaseClient):
     ) -> str:
         """
         Create a native ROS2 service client.
-        
+
         Args:
             service_name: Name of the service (e.g., '/add_two_ints')
             service_type: Type of the service (e.g., 'example_interfaces/srv/AddTwoInts')
-            
+
         Returns:
             Client ID that can be used with call_service and service_available
-            
+
         Example:
             | ${client_id}= | Create Service Client | /add_two_ints | example_interfaces/srv/AddTwoInts |
         """
@@ -226,15 +231,15 @@ class ROS2ClientLibrary(ROS2BaseClient):
     ) -> Optional[Dict[str, Any]]:
         """
         Call a service using a native service client.
-        
+
         Args:
             client_id: ID of the service client (from create_service_client)
             request_data: Request data to send to the service
             timeout: Timeout for the service call
-            
+
         Returns:
             Service response data or None if failed
-            
+
         Example:
             | ${client_id}= | Create Service Client | /add_two_ints | example_interfaces/srv/AddTwoInts |
             | ${result}= | Call Service | ${client_id} | {"a": 5, "b": 3} |
@@ -245,14 +250,14 @@ class ROS2ClientLibrary(ROS2BaseClient):
     def service_available(self, client_id: str, timeout: float = 1.0) -> bool:
         """
         Check if a service is available using native client.
-        
+
         Args:
             client_id: ID of the service client (from create_service_client)
             timeout: Timeout for checking availability
-            
+
         Returns:
             True if service is available, False otherwise
-            
+
         Example:
             | ${client_id}= | Create Service Client | /add_two_ints | example_interfaces/srv/AddTwoInts |
             | ${available}= | Service Available | ${client_id} |
@@ -268,28 +273,30 @@ class ROS2ClientLibrary(ROS2BaseClient):
     ) -> str:
         """
         Create a native ROS2 service server.
-        
+
         Args:
             service_name: Name of the service (e.g., '/add_two_ints')
             service_type: Type of the service (e.g., 'example_interfaces/srv/AddTwoInts')
             callback_function: Optional callback function to handle service requests
-            
+
         Returns:
             Server ID for managing the service server
-            
+
         Example:
             | ${server_id}= | Create Service Server | /add_two_ints | example_interfaces/srv/AddTwoInts |
         """
-        return self.native_client.create_service_server(service_name, service_type, callback_function)
+        return self.native_client.create_service_server(
+            service_name, service_type, callback_function
+        )
 
     @keyword
     def get_service_info(self) -> Dict[str, Any]:
         """
         Get information about native service clients and servers.
-        
+
         Returns:
             Dictionary containing information about all created service clients and servers
-            
+
         Example:
             | ${info}= | Get Service Info |
             | Log | Service clients: ${info['clients']} |
@@ -433,7 +440,9 @@ class ROS2ClientLibrary(ROS2BaseClient):
         setup_script: Optional[str] = None,
     ):
         """Run a node (always uses CLI)."""
-        return self.cli_client.run_node(package_name, executable_name, arguments, setup_script)
+        return self.cli_client.run_node(
+            package_name, executable_name, arguments, setup_script
+        )
 
     @keyword
     def run_node_with_remap(

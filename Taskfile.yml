@@ -1,0 +1,38 @@
+version: '3'
+
+vars:
+  PYTHON: "venv/bin/python"
+  PIP: "venv/bin/pip"
+
+tasks:
+  # Install development dependencies
+  install:
+    desc: "Install development dependencies"
+    cmds:
+      - "{{.PIP}} install black isort flake8 mypy"
+
+  # Format Python code
+  format:
+    desc: "Format Python code with Black and isort"
+    cmds:
+      - "{{.PYTHON}} -m black src/"
+      - "{{.PYTHON}} -m isort src/"
+
+  # Check formatting
+  check:
+    desc: "Check Python code formatting"
+    cmds:
+      - "{{.PYTHON}} -m black --check src/"
+      - "{{.PYTHON}} -m isort --check-only src/"
+
+  # Lint code
+  lint:
+    desc: "Lint Python code"
+    cmds:
+      - "{{.PYTHON}} -m flake8 src/"
+
+  # Type check
+  type-check:
+    desc: "Type check Python code"
+    cmds:
+      - "{{.PYTHON}} -m mypy src/"

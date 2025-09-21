@@ -2,13 +2,14 @@
 CLI-based Navigation2 operations using subprocess calls
 """
 
-import time
 import math
-from typing import List, Dict, Any, Optional
-from robot.api.deco import keyword
-from robot.api import logger
+import time
+from typing import Any, Dict, List, Optional
 
-from .utils import Nav2BaseClient, Pose, NavigationResult
+from robot.api import logger
+from robot.api.deco import keyword
+
+from .utils import Nav2BaseClient, NavigationResult, Pose
 
 
 class Nav2CLIClient(Nav2BaseClient):
@@ -344,9 +345,9 @@ class Nav2CLIClient(Nav2BaseClient):
         """
         status = {
             "navigation_active": self._navigation_active,
-            "current_pose": self._current_pose.to_dict()
-            if self._current_pose
-            else None,
+            "current_pose": (
+                self._current_pose.to_dict() if self._current_pose else None
+            ),
             "goal_pose": self._goal_pose.to_dict() if self._goal_pose else None,
         }
 

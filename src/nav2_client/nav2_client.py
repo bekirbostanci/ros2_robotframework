@@ -3,13 +3,14 @@ Main Navigation2 client that combines CLI and native operations
 """
 
 import asyncio
-from typing import List, Dict, Any, Optional
-from robot.api.deco import keyword
-from robot.api import logger
+from typing import Any, Dict, List, Optional
 
-from .utils import Nav2BaseClient, Pose, NavigationResult
+from robot.api import logger
+from robot.api.deco import keyword
+
 from .cli_client import Nav2CLIClient
 from .native_client import Nav2NativeClient
+from .utils import Nav2BaseClient, NavigationResult, Pose
 
 
 class Nav2ClientLibrary(Nav2BaseClient):
@@ -523,9 +524,9 @@ class Nav2ClientLibrary(Nav2BaseClient):
             "action_timeout": self.action_timeout,
             "ros2_executable": self._ros2_executable,
             "navigation_active": self._navigation_active,
-            "current_pose": self._current_pose.to_dict()
-            if self._current_pose
-            else None,
+            "current_pose": (
+                self._current_pose.to_dict() if self._current_pose else None
+            ),
             "goal_pose": self._goal_pose.to_dict() if self._goal_pose else None,
         }
 

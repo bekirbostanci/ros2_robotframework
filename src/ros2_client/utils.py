@@ -4,9 +4,10 @@ Common utilities and base classes for ROS2 Robot Framework Library
 
 import subprocess
 import time
-from typing import List, Dict, Any, Optional
-from robot.api.deco import keyword
+from typing import Any, Dict, List, Optional
+
 from robot.api import logger
+from robot.api.deco import keyword
 
 
 class ROS2BaseClient:

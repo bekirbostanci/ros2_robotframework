@@ -2,26 +2,28 @@
 Native ROS2 node operations using rclpy
 """
 
-import rclpy
-from rclpy.node import Node
-from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy
-from rclpy.parameter import Parameter
-from rclpy.callback_groups import ReentrantCallbackGroup
-from rclpy.executors import MultiThreadedExecutor
-from std_msgs.msg import String, Bool, Int32, Float32
-from std_srvs.srv import Empty, SetBool, Trigger
-from geometry_msgs.msg import PoseStamped, Twist, Point, Quaternion
-from sensor_msgs.msg import LaserScan, Image
-import tf2_ros
-from tf2_ros import TransformException
+import importlib
+import json
 import threading
 import time
-import importlib
-from typing import List, Dict, Any, Optional, Callable
-from robot.api.deco import keyword
+from typing import Any, Callable, Dict, List, Optional
+
+import rclpy
+import tf2_ros
+from geometry_msgs.msg import Point, PoseStamped, Quaternion, Twist
+from rclpy.callback_groups import ReentrantCallbackGroup
+from rclpy.executors import MultiThreadedExecutor
+from rclpy.node import Node
+from rclpy.parameter import Parameter
+from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy
 from robot.api import logger
+from robot.api.deco import keyword
 from rosidl_runtime_py import message_to_ordereddict
-import json
+from sensor_msgs.msg import Image, LaserScan
+from std_msgs.msg import Bool, Float32, Int32, String
+from std_srvs.srv import Empty, SetBool, Trigger
+from tf2_ros import TransformException
+
 from .utils import ROS2BaseClient
 
 
@@ -159,10 +161,10 @@ class ROS2NativeClient(ROS2BaseClient):
                 parts = service_type.split("/")
                 if len(parts) != 3 or parts[1] != "srv":
                     raise ValueError(f"Invalid service type format: {service_type}")
-                
+
                 package_name = parts[0]
                 service_name = parts[2]
-                
+
                 # Import the service module
                 module_name = f"{package_name}.srv"
                 module = importlib.import_module(module_name)
@@ -174,7 +176,7 @@ class ROS2NativeClient(ROS2BaseClient):
     def _create_service_request(self, service_class, data: Any):
         """Create a service request from data."""
         request = service_class.Request()
-        
+
         # Handle different data types more carefully
         if data is None:
             # For Empty services or when no data is provided
@@ -182,18 +184,18 @@ class ROS2NativeClient(ROS2BaseClient):
         elif isinstance(data, dict):
             # Try to set attributes from dictionary
             for key, value in data.items():
-                if hasattr(request, key) and not key.startswith('_'):
+                if hasattr(request, key) and not key.startswith("_"):
                     try:
                         setattr(request, key, value)
                     except (AttributeError, TypeError) as e:
                         logger.warn(f"Could not set attribute '{key}' on request: {e}")
-        elif hasattr(request, 'data'):
+        elif hasattr(request, "data"):
             # For services with a 'data' field
             try:
                 request.data = data
             except (AttributeError, TypeError) as e:
                 logger.warn(f"Could not set 'data' attribute on request: {e}")
-        elif hasattr(request, 'request'):
+        elif hasattr(request, "request"):
             # For services with a 'request' field
             try:
                 request.request = data
@@ -202,55 +204,63 @@ class ROS2NativeClient(ROS2BaseClient):
         else:
             # For simple services, try to set the first available writable attribute
             for attr_name in dir(request):
-                if (not attr_name.startswith('_') and 
-                    not callable(getattr(request, attr_name)) and
-                    not attr_name.upper() == attr_name):  # Skip constants
+                if (
+                    not attr_name.startswith("_")
+                    and not callable(getattr(request, attr_name))
+                    and not attr_name.upper() == attr_name
+                ):  # Skip constants
                     try:
                         setattr(request, attr_name, data)
                         break
                     except (AttributeError, TypeError):
                         continue
-        
+
         return request
 
     def _extract_service_response(self, response) -> Any:
         """Extract data from a service response."""
-        if hasattr(response, 'data'):
+        if hasattr(response, "data"):
             return response.data
-        elif hasattr(response, 'response'):
+        elif hasattr(response, "response"):
             return response.response
-        elif hasattr(response, 'success'):
+        elif hasattr(response, "success"):
             return {
                 "success": response.success,
-                "message": getattr(response, 'message', ''),
+                "message": getattr(response, "message", ""),
             }
         else:
             # For complex message types, extract meaningful data
             result = {}
             for attr_name in dir(response):
-                if (not attr_name.startswith('_') and 
-                    not callable(getattr(response, attr_name)) and
-                    not attr_name.upper() == attr_name and  # Skip constants
-                    attr_name != 'SLOT_TYPES'):  # Skip ROS2 internal attributes
-                    
+                if (
+                    not attr_name.startswith("_")
+                    and not callable(getattr(response, attr_name))
+                    and not attr_name.upper() == attr_name  # Skip constants
+                    and attr_name != "SLOT_TYPES"
+                ):  # Skip ROS2 internal attributes
+
                     attr_value = getattr(response, attr_name)
-                    
+
                     # Recursively extract data from nested message objects
-                    if hasattr(attr_value, '__dict__') and not isinstance(attr_value, (str, int, float, bool, list, dict)):
+                    if hasattr(attr_value, "__dict__") and not isinstance(
+                        attr_value, (str, int, float, bool, list, dict)
+                    ):
                         # This is likely a ROS2 message object, extract its data
                         result[attr_name] = self._extract_message_data(attr_value)
                     elif isinstance(attr_value, list):
                         # Handle lists of message objects
                         extracted_list = []
                         for item in attr_value:
-                            if hasattr(item, '__dict__') and not isinstance(item, (str, int, float, bool, list, dict)):
+                            if hasattr(item, "__dict__") and not isinstance(
+                                item, (str, int, float, bool, list, dict)
+                            ):
                                 extracted_list.append(self._extract_message_data(item))
                             else:
                                 extracted_list.append(item)
                         result[attr_name] = extracted_list
                     else:
                         result[attr_name] = attr_value
-            
+
             return result
 
     def _extract_message_data(self, msg) -> Any:
@@ -289,28 +299,34 @@ class ROS2NativeClient(ROS2BaseClient):
             # Generic message extraction for complex types
             result = {}
             for attr_name in dir(msg):
-                if (not attr_name.startswith('_') and 
-                    not callable(getattr(msg, attr_name)) and
-                    not attr_name.upper() == attr_name and  # Skip constants
-                    attr_name != 'SLOT_TYPES'):  # Skip ROS2 internal attributes
-                    
+                if (
+                    not attr_name.startswith("_")
+                    and not callable(getattr(msg, attr_name))
+                    and not attr_name.upper() == attr_name  # Skip constants
+                    and attr_name != "SLOT_TYPES"
+                ):  # Skip ROS2 internal attributes
+
                     attr_value = getattr(msg, attr_name)
-                    
+
                     # Handle nested message objects
-                    if hasattr(attr_value, '__dict__') and not isinstance(attr_value, (str, int, float, bool, list, dict)):
+                    if hasattr(attr_value, "__dict__") and not isinstance(
+                        attr_value, (str, int, float, bool, list, dict)
+                    ):
                         result[attr_name] = self._extract_message_data(attr_value)
                     elif isinstance(attr_value, list):
                         # Handle lists of message objects
                         extracted_list = []
                         for item in attr_value:
-                            if hasattr(item, '__dict__') and not isinstance(item, (str, int, float, bool, list, dict)):
+                            if hasattr(item, "__dict__") and not isinstance(
+                                item, (str, int, float, bool, list, dict)
+                            ):
                                 extracted_list.append(self._extract_message_data(item))
                             else:
                                 extracted_list.append(item)
                         result[attr_name] = extracted_list
                     else:
                         result[attr_name] = attr_value
-            
+
             return result if result else str(msg)
 
     # ============================================================================
@@ -645,7 +661,9 @@ class ROS2NativeClient(ROS2BaseClient):
 
             # Wait for service to be available
             if not client.wait_for_service(timeout_sec=timeout):
-                logger.error(f"Service '{client_info['service_name']}' not available within {timeout}s")
+                logger.error(
+                    f"Service '{client_info['service_name']}' not available within {timeout}s"
+                )
                 return None
 
             # Create request
@@ -664,7 +682,9 @@ class ROS2NativeClient(ROS2BaseClient):
                 )
                 return response_data
             else:
-                logger.error(f"Service call to '{client_info['service_name']}' timed out")
+                logger.error(
+                    f"Service call to '{client_info['service_name']}' timed out"
+                )
                 return None
 
         except Exception as e:
@@ -696,7 +716,9 @@ class ROS2NativeClient(ROS2BaseClient):
             client_info = self._service_clients[client_id]
             client = client_info["client"]
             available = client.wait_for_service(timeout_sec=timeout)
-            logger.info(f"Service '{client_info['service_name']}' available: {available}")
+            logger.info(
+                f"Service '{client_info['service_name']}' available: {available}"
+            )
             return available
         except Exception as e:
             logger.error(f"Error checking service availability for '{client_id}': {e}")
@@ -730,9 +752,9 @@ class ROS2NativeClient(ROS2BaseClient):
         def default_callback(request, response):
             """Default callback that returns success."""
             logger.info(f"Service '{service_name}' called with request: {request}")
-            if hasattr(response, 'success'):
+            if hasattr(response, "success"):
                 response.success = True
-            if hasattr(response, 'message'):
+            if hasattr(response, "message"):
                 response.message = "Service called successfully"
             return response
 
@@ -1205,7 +1227,7 @@ class ROS2NativeClient(ROS2BaseClient):
             # Clean up service clients and servers
             self._service_clients.clear()
             self._service_servers.clear()
-            
+
             # Clean up tf2 resources
             if self._tf_listener:
                 self._tf_listener = None

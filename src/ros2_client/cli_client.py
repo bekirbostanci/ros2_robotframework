@@ -2,13 +2,14 @@
 CLI-based ROS2 operations using subprocess calls
 """
 
-import subprocess
 import os
+import subprocess
 import time
-from typing import List, Dict, Any, Optional, Union
 from pathlib import Path
-from robot.api.deco import keyword
+from typing import Any, Dict, List, Optional, Union
+
 from robot.api import logger
+from robot.api.deco import keyword
 
 from .utils import ROS2CLIUtils
 
@@ -256,11 +257,13 @@ class ROS2CLIClient(ROS2CLIUtils):
             result = self._run_ros2_command(command, timeout=timeout)
 
             if result.returncode != 0:
-                logger.error(f"Failed to send action goal to '{action_name}': {result.stderr}")
+                logger.error(
+                    f"Failed to send action goal to '{action_name}': {result.stderr}"
+                )
                 return {
                     "success": False,
                     "error": result.stderr,
-                    "stdout": result.stdout
+                    "stdout": result.stdout,
                 }
 
             # Parse the output to extract useful information
@@ -271,7 +274,7 @@ class ROS2CLIClient(ROS2CLIUtils):
                 "action_type": action_type,
                 "goal_data": goal_data,
                 "raw_output": result.stdout,
-                "return_code": result.returncode
+                "return_code": result.returncode,
             }
 
             # Try to extract goal ID and status from output
@@ -293,11 +296,13 @@ class ROS2CLIClient(ROS2CLIUtils):
                 "error": str(e),
                 "action_name": action_name,
                 "action_type": action_type,
-                "goal_data": goal_data
+                "goal_data": goal_data,
             }
 
     @keyword
-    def get_action_info(self, action_name: str, timeout: Optional[float] = None) -> Dict[str, Any]:
+    def get_action_info(
+        self, action_name: str, timeout: Optional[float] = None
+    ) -> Dict[str, Any]:
         """
         Get detailed information about an action.
 
@@ -312,20 +317,24 @@ class ROS2CLIClient(ROS2CLIUtils):
             | ${info}= | Get Action Info | /execute_action |
         """
         try:
-            result = self._run_ros2_command(["action", "info", action_name], timeout=timeout)
-            
+            result = self._run_ros2_command(
+                ["action", "info", action_name], timeout=timeout
+            )
+
             if result.returncode != 0:
-                logger.error(f"Failed to get action info for '{action_name}': {result.stderr}")
+                logger.error(
+                    f"Failed to get action info for '{action_name}': {result.stderr}"
+                )
                 return {
                     "success": False,
                     "error": result.stderr,
-                    "action_name": action_name
+                    "action_name": action_name,
                 }
 
             # Parse the output to extract useful information
             info = {"success": True, "action_name": action_name}
             lines = result.stdout.strip().split("\n")
-            
+
             for line in lines:
                 if "Action clients:" in line:
                     info["clients"] = line.replace("Action clients:", "").strip()
@@ -338,12 +347,10 @@ class ROS2CLIClient(ROS2CLIUtils):
             return info
 
         except Exception as e:
-            logger.error(f"Exception while getting action info for '{action_name}': {e}")
-            return {
-                "success": False,
-                "error": str(e),
-                "action_name": action_name
-            }
+            logger.error(
+                f"Exception while getting action info for '{action_name}': {e}"
+            )
+            return {"success": False, "error": str(e), "action_name": action_name}
 
     @keyword
     def action_exists(self, action_name: str, timeout: Optional[float] = None) -> bool:
@@ -367,7 +374,9 @@ class ROS2CLIClient(ROS2CLIUtils):
             logger.info(f"Action '{action_name}' exists: {exists}")
             return exists
         except Exception as e:
-            logger.error(f"Exception while checking if action '{action_name}' exists: {e}")
+            logger.error(
+                f"Exception while checking if action '{action_name}' exists: {e}"
+            )
             return False
 
     # ============================================================================
@@ -412,9 +421,9 @@ class ROS2CLIClient(ROS2CLIUtils):
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
-                preexec_fn=None
-                if os.name == "nt"
-                else os.setsid,  # Create new process group
+                preexec_fn=(
+                    None if os.name == "nt" else os.setsid
+                ),  # Create new process group
             )
 
             logger.info(f"Launched process with PID: {process.pid}")
@@ -480,9 +489,9 @@ class ROS2CLIClient(ROS2CLIUtils):
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
-                preexec_fn=None
-                if os.name == "nt"
-                else os.setsid,  # Create new process group
+                preexec_fn=(
+                    None if os.name == "nt" else os.setsid
+                ),  # Create new process group
             )
 
             logger.info(f"Launched process with PID: {process.pid}")
@@ -710,16 +719,16 @@ class ROS2CLIClient(ROS2CLIUtils):
                 shell_command = f"source {setup_script} && {' '.join(full_command)}"
                 logger.info(f"Using setup script: {setup_script}")
             else:
-                shell_command = ' '.join(full_command)
+                shell_command = " ".join(full_command)
                 logger.info("Running without setup script")
-            
+
             process = subprocess.Popen(
-                shell_command, 
-                stdout=subprocess.PIPE, 
-                stderr=subprocess.PIPE, 
+                shell_command,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
                 text=True,
                 shell=True,
-                executable='/bin/bash'
+                executable="/bin/bash",
             )
             logger.info(f"Started node process with PID: {process.pid}")
             return process
@@ -776,17 +785,20 @@ class ROS2CLIClient(ROS2CLIUtils):
                 shell_command = f"source {setup_script} && {' '.join(full_command)}"
                 logger.info(f"Using setup script: {setup_script}")
                 process = subprocess.Popen(
-                    shell_command, 
-                    stdout=subprocess.PIPE, 
-                    stderr=subprocess.PIPE, 
+                    shell_command,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
                     text=True,
                     shell=True,
-                    executable='/bin/bash'
+                    executable="/bin/bash",
                 )
             else:
                 logger.info("Running without setup script")
                 process = subprocess.Popen(
-                    full_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+                    full_command,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
                 )
 
             logger.info(f"Started node process with PID: {process.pid}")
