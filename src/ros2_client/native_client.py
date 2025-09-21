@@ -9,16 +9,19 @@ from rclpy.parameter import Parameter
 from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
 from std_msgs.msg import String, Bool, Int32, Float32
+from std_srvs.srv import Empty, SetBool, Trigger
 from geometry_msgs.msg import PoseStamped, Twist, Point, Quaternion
 from sensor_msgs.msg import LaserScan, Image
 import tf2_ros
 from tf2_ros import TransformException
 import threading
 import time
-from typing import List, Dict, Any, Optional
+import importlib
+from typing import List, Dict, Any, Optional, Callable
 from robot.api.deco import keyword
 from robot.api import logger
-
+from rosidl_runtime_py import message_to_ordereddict
+import json
 from .utils import ROS2BaseClient
 
 
@@ -35,6 +38,8 @@ class ROS2NativeClient(ROS2BaseClient):
         self._message_buffer: Dict[str, List[Any]] = {}
         self._subscribers: Dict[str, Any] = {}
         self._publishers: Dict[str, Any] = {}
+        self._service_clients: Dict[str, Any] = {}
+        self._service_servers: Dict[str, Any] = {}
         self._callback_group = ReentrantCallbackGroup()
         self._initialized = False
         self._tf_buffer: Optional[tf2_ros.Buffer] = None
@@ -136,6 +141,118 @@ class ROS2NativeClient(ROS2BaseClient):
         else:
             raise ValueError(f"Unsupported message class: {msg_class}")
 
+    def _get_service_class(self, service_type: str):
+        """Get the actual service class from string type."""
+        # Common service types
+        service_classes = {
+            "std_srvs/srv/Empty": Empty,
+            "std_srvs/srv/SetBool": SetBool,
+            "std_srvs/srv/Trigger": Trigger,
+        }
+
+        if service_type in service_classes:
+            return service_classes[service_type]
+        else:
+            # Try to dynamically import the service type
+            try:
+                # Parse service type (e.g., "package/srv/ServiceName")
+                parts = service_type.split("/")
+                if len(parts) != 3 or parts[1] != "srv":
+                    raise ValueError(f"Invalid service type format: {service_type}")
+                
+                package_name = parts[0]
+                service_name = parts[2]
+                
+                # Import the service module
+                module_name = f"{package_name}.srv"
+                module = importlib.import_module(module_name)
+                service_class = getattr(module, service_name)
+                return service_class
+            except (ImportError, AttributeError) as e:
+                raise ValueError(f"Could not import service type '{service_type}': {e}")
+
+    def _create_service_request(self, service_class, data: Any):
+        """Create a service request from data."""
+        request = service_class.Request()
+        
+        # Handle different data types more carefully
+        if data is None:
+            # For Empty services or when no data is provided
+            return request
+        elif isinstance(data, dict):
+            # Try to set attributes from dictionary
+            for key, value in data.items():
+                if hasattr(request, key) and not key.startswith('_'):
+                    try:
+                        setattr(request, key, value)
+                    except (AttributeError, TypeError) as e:
+                        logger.warn(f"Could not set attribute '{key}' on request: {e}")
+        elif hasattr(request, 'data'):
+            # For services with a 'data' field
+            try:
+                request.data = data
+            except (AttributeError, TypeError) as e:
+                logger.warn(f"Could not set 'data' attribute on request: {e}")
+        elif hasattr(request, 'request'):
+            # For services with a 'request' field
+            try:
+                request.request = data
+            except (AttributeError, TypeError) as e:
+                logger.warn(f"Could not set 'request' attribute on request: {e}")
+        else:
+            # For simple services, try to set the first available writable attribute
+            for attr_name in dir(request):
+                if (not attr_name.startswith('_') and 
+                    not callable(getattr(request, attr_name)) and
+                    not attr_name.upper() == attr_name):  # Skip constants
+                    try:
+                        setattr(request, attr_name, data)
+                        break
+                    except (AttributeError, TypeError):
+                        continue
+        
+        return request
+
+    def _extract_service_response(self, response) -> Any:
+        """Extract data from a service response."""
+        if hasattr(response, 'data'):
+            return response.data
+        elif hasattr(response, 'response'):
+            return response.response
+        elif hasattr(response, 'success'):
+            return {
+                "success": response.success,
+                "message": getattr(response, 'message', ''),
+            }
+        else:
+            # For complex message types, extract meaningful data
+            result = {}
+            for attr_name in dir(response):
+                if (not attr_name.startswith('_') and 
+                    not callable(getattr(response, attr_name)) and
+                    not attr_name.upper() == attr_name and  # Skip constants
+                    attr_name != 'SLOT_TYPES'):  # Skip ROS2 internal attributes
+                    
+                    attr_value = getattr(response, attr_name)
+                    
+                    # Recursively extract data from nested message objects
+                    if hasattr(attr_value, '__dict__') and not isinstance(attr_value, (str, int, float, bool, list, dict)):
+                        # This is likely a ROS2 message object, extract its data
+                        result[attr_name] = self._extract_message_data(attr_value)
+                    elif isinstance(attr_value, list):
+                        # Handle lists of message objects
+                        extracted_list = []
+                        for item in attr_value:
+                            if hasattr(item, '__dict__') and not isinstance(item, (str, int, float, bool, list, dict)):
+                                extracted_list.append(self._extract_message_data(item))
+                            else:
+                                extracted_list.append(item)
+                        result[attr_name] = extracted_list
+                    else:
+                        result[attr_name] = attr_value
+            
+            return result
+
     def _extract_message_data(self, msg) -> Any:
         """Extract data from a message for storage."""
         if hasattr(msg, "data"):
@@ -169,7 +286,32 @@ class ROS2NativeClient(ROS2BaseClient):
                 "angular": {"x": msg.angular.x, "y": msg.angular.y, "z": msg.angular.z},
             }
         else:
-            return str(msg)
+            # Generic message extraction for complex types
+            result = {}
+            for attr_name in dir(msg):
+                if (not attr_name.startswith('_') and 
+                    not callable(getattr(msg, attr_name)) and
+                    not attr_name.upper() == attr_name and  # Skip constants
+                    attr_name != 'SLOT_TYPES'):  # Skip ROS2 internal attributes
+                    
+                    attr_value = getattr(msg, attr_name)
+                    
+                    # Handle nested message objects
+                    if hasattr(attr_value, '__dict__') and not isinstance(attr_value, (str, int, float, bool, list, dict)):
+                        result[attr_name] = self._extract_message_data(attr_value)
+                    elif isinstance(attr_value, list):
+                        # Handle lists of message objects
+                        extracted_list = []
+                        for item in attr_value:
+                            if hasattr(item, '__dict__') and not isinstance(item, (str, int, float, bool, list, dict)):
+                                extracted_list.append(self._extract_message_data(item))
+                            else:
+                                extracted_list.append(item)
+                        result[attr_name] = extracted_list
+                    else:
+                        result[attr_name] = attr_value
+            
+            return result if result else str(msg)
 
     # ============================================================================
     # NATIVE TOPIC OPERATIONS
@@ -424,6 +566,227 @@ class ROS2NativeClient(ROS2BaseClient):
 
         logger.warn(f"No message received on topic '{topic_name}' within {timeout}s")
         return None
+
+    # ============================================================================
+    # NATIVE SERVICE OPERATIONS
+    # ============================================================================
+
+    @keyword
+    def create_service_client(
+        self,
+        service_name: str,
+        service_type: str,
+    ) -> str:
+        """
+        Create a native ROS2 service client.
+
+        Args:
+            service_name: Name of the service
+            service_type: Type of the service (e.g., "std_srvs/srv/Empty")
+
+        Returns:
+            Service client ID for use with other methods
+
+        Example:
+            | ${client}= | Create Service Client | /reset | std_srvs/srv/Empty |
+            | ${response}= | Call Service | ${client} | {} |
+        """
+        self._ensure_initialized()
+
+        service_class = self._get_service_class(service_type)
+
+        client = self.node.create_client(
+            service_class, service_name, callback_group=self._callback_group
+        )
+        client_id = service_name  # Use service name directly as ID
+        self._service_clients[client_id] = {
+            "client": client,
+            "service_name": service_name,
+            "service_type": service_type,
+            "service_class": service_class,
+        }
+
+        logger.info(
+            f"Created native service client for service '{service_name}' with ID: {client_id}"
+        )
+        return client_id
+
+    @keyword
+    def call_service(
+        self,
+        client_id: str,
+        request_data: Any = None,
+        timeout: float = 10.0,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Call a service using a native service client.
+
+        Args:
+            client_id: ID of the service client (from create_service_client)
+            request_data: Request data to send (can be dict, simple value, or None)
+            timeout: Timeout in seconds for the service call
+
+        Returns:
+            Service response data or None if call failed
+
+        Example:
+            | ${client}= | Create Service Client | /reset | std_srvs/srv/Empty |
+            | ${response}= | Call Service | ${client} | {} | timeout=5.0 |
+            | Should Not Be None | ${response} |
+        """
+        if client_id not in self._service_clients:
+            logger.error(f"Service client ID '{client_id}' not found")
+            return None
+
+        try:
+            client_info = self._service_clients[client_id]
+            client = client_info["client"]
+            service_class = client_info["service_class"]
+
+            # Wait for service to be available
+            if not client.wait_for_service(timeout_sec=timeout):
+                logger.error(f"Service '{client_info['service_name']}' not available within {timeout}s")
+                return None
+
+            # Create request
+            request = self._create_service_request(service_class, request_data)
+
+            # Call service
+            future = client.call_async(request)
+            rclpy.spin_until_future_complete(self.node, future, timeout_sec=timeout)
+
+            if future.done():
+                response = future.result()
+                # JSON dump the response
+                response_data = message_to_ordereddict(response)
+                logger.info(
+                    f"Service call to '{client_info['service_name']}' successful: {response_data}"
+                )
+                return response_data
+            else:
+                logger.error(f"Service call to '{client_info['service_name']}' timed out")
+                return None
+
+        except Exception as e:
+            logger.error(f"Failed to call service '{client_id}': {e}")
+            return None
+
+    @keyword
+    def service_available(self, client_id: str, timeout: float = 1.0) -> bool:
+        """
+        Check if a service is available.
+
+        Args:
+            client_id: ID of the service client
+            timeout: Timeout in seconds for the check
+
+        Returns:
+            True if service is available, False otherwise
+
+        Example:
+            | ${client}= | Create Service Client | /reset | std_srvs/srv/Empty |
+            | ${available}= | Service Available | ${client} | timeout=2.0 |
+            | Should Be True | ${available} |
+        """
+        if client_id not in self._service_clients:
+            logger.error(f"Service client ID '{client_id}' not found")
+            return False
+
+        try:
+            client_info = self._service_clients[client_id]
+            client = client_info["client"]
+            available = client.wait_for_service(timeout_sec=timeout)
+            logger.info(f"Service '{client_info['service_name']}' available: {available}")
+            return available
+        except Exception as e:
+            logger.error(f"Error checking service availability for '{client_id}': {e}")
+            return False
+
+    @keyword
+    def create_service_server(
+        self,
+        service_name: str,
+        service_type: str,
+        callback_function: Optional[Callable] = None,
+    ) -> str:
+        """
+        Create a native ROS2 service server.
+
+        Args:
+            service_name: Name of the service
+            service_type: Type of the service (e.g., "std_srvs/srv/Empty")
+            callback_function: Optional callback function to handle requests
+
+        Returns:
+            Service server ID for use with other methods
+
+        Example:
+            | ${server}= | Create Service Server | /my_service | std_srvs/srv/Empty |
+        """
+        self._ensure_initialized()
+
+        service_class = self._get_service_class(service_type)
+
+        def default_callback(request, response):
+            """Default callback that returns success."""
+            logger.info(f"Service '{service_name}' called with request: {request}")
+            if hasattr(response, 'success'):
+                response.success = True
+            if hasattr(response, 'message'):
+                response.message = "Service called successfully"
+            return response
+
+        callback = callback_function if callback_function else default_callback
+
+        server = self.node.create_service(
+            service_class,
+            service_name,
+            callback,
+            callback_group=self._callback_group,
+        )
+        server_id = service_name  # Use service name directly as ID
+        self._service_servers[server_id] = {
+            "server": server,
+            "service_name": service_name,
+            "service_type": service_type,
+            "service_class": service_class,
+            "callback": callback,
+        }
+
+        logger.info(
+            f"Created native service server for service '{service_name}' with ID: {server_id}"
+        )
+        return server_id
+
+    @keyword
+    def get_service_info(self) -> Dict[str, Any]:
+        """
+        Get information about created service clients and servers.
+
+        Returns:
+            Dictionary with service client and server information
+
+        Example:
+            | ${info}= | Get Service Info |
+            | Log | Service clients: ${info}[clients] |
+            | Log | Service servers: ${info}[servers] |
+        """
+        return {
+            "clients": {
+                client_id: {
+                    "service_name": info["service_name"],
+                    "service_type": info["service_type"],
+                }
+                for client_id, info in self._service_clients.items()
+            },
+            "servers": {
+                server_id: {
+                    "service_name": info["service_name"],
+                    "service_type": info["service_type"],
+                }
+                for server_id, info in self._service_servers.items()
+            },
+        }
 
     # ============================================================================
     # NATIVE PARAMETER OPERATIONS
@@ -839,6 +1202,10 @@ class ROS2NativeClient(ROS2BaseClient):
     def cleanup(self):
         """Clean up resources."""
         if self._initialized and self.node:
+            # Clean up service clients and servers
+            self._service_clients.clear()
+            self._service_servers.clear()
+            
             # Clean up tf2 resources
             if self._tf_listener:
                 self._tf_listener = None
@@ -860,6 +1227,8 @@ class ROS2NativeClient(ROS2BaseClient):
             "node_name": self.node_name,
             "publishers": list(self._publishers.keys()),
             "subscribers": list(self._subscribers.keys()),
+            "service_clients": list(self._service_clients.keys()),
+            "service_servers": list(self._service_servers.keys()),
             "buffered_topics": list(self._message_buffer.keys()),
             "total_messages": sum(len(msgs) for msgs in self._message_buffer.values()),
             "tf2_available": self._tf_buffer is not None

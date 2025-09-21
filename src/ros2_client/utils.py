@@ -387,7 +387,7 @@ class ROS2CLIUtils(ROS2BaseClient):
         self,
         service_name: str,
         service_type: str,
-        request_data: str,
+        request_data: Optional[str] = None,
         timeout: Optional[float] = None,
     ) -> Dict[str, Any]:
         """
@@ -406,8 +406,12 @@ class ROS2CLIUtils(ROS2BaseClient):
             | ${response}= | Call Service | /add_two_ints | example_interfaces/srv/AddTwoInts | "a: 5, b: 3" |
             | Should Be Equal | ${response}[sum] | 8 |
         """
+        command = ["service", "call", service_name, service_type]
+        if request_data is not None:
+            command.append(request_data)
+
         result = self._run_ros2_command(
-            ["service", "call", service_name, service_type, request_data],
+            command,
             timeout=timeout,
         )
 

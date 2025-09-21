@@ -203,7 +203,7 @@ class ROS2ClientLibrary(ROS2BaseClient):
         self,
         service_name: str,
         service_type: str,
-        request_data: str,
+        request_data: Optional[str] = None,
         timeout: Optional[float] = None,
     ) -> Dict[str, Any]:
         """Call a service (always uses CLI for now)."""
@@ -224,6 +224,49 @@ class ROS2ClientLibrary(ROS2BaseClient):
     ) -> bool:
         """Wait for a service to become available (always uses CLI)."""
         return self.cli_client.wait_for_service(service_name, timeout, check_interval)
+
+    # ============================================================================
+    # NATIVE SERVICE OPERATIONS
+    # ============================================================================
+
+    @keyword
+    def create_service_client(
+        self,
+        service_name: str,
+        service_type: str,
+    ) -> str:
+        """Create a native ROS2 service client."""
+        return self.native_client.create_service_client(service_name, service_type)
+
+    @keyword
+    def call_service_native(
+        self,
+        client_id: str,
+        request_data: Any = None,
+        timeout: float = 10.0,
+    ) -> Optional[Dict[str, Any]]:
+        """Call a service using a native service client."""
+        return self.native_client.call_service(client_id, request_data, timeout)
+
+    @keyword
+    def service_available_native(self, client_id: str, timeout: float = 1.0) -> bool:
+        """Check if a service is available using native client."""
+        return self.native_client.service_available(client_id, timeout)
+
+    @keyword
+    def create_service_server(
+        self,
+        service_name: str,
+        service_type: str,
+        callback_function: Optional[Any] = None,
+    ) -> str:
+        """Create a native ROS2 service server."""
+        return self.native_client.create_service_server(service_name, service_type, callback_function)
+
+    @keyword
+    def get_service_info_native(self) -> Dict[str, Any]:
+        """Get information about native service clients and servers."""
+        return self.native_client.get_service_info()
 
     # ============================================================================
     # NODE OPERATIONS (Always CLI)
