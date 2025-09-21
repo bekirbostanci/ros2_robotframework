@@ -15,7 +15,7 @@ Test PyRobo Simulation Send Command
     [Teardown]    Clean Up PyRobo Simulation
     
     # Test the new action send_goal functionality
-    ${result}=    Send Action Goal    /execute_action    pyrobosim_msgs/action/ExecuteTaskAction    {"action": {"robot": "robot", "type": "navigate", "source_location": "kitchen", "target_location": "desk"}, "realtime_factor": 1.0}
+    ${result}=    Send Action Goal    /execute_action    pyrobosim_msgs/action/ExecuteTaskAction    {"action": {"robot": "robot", "type": "navigate", "source_location": "kitchen", "target_location": "desk"}, "realtime_factor": 1.0}  timeout=15.0
     Log    Action result: ${result}
     Should Be True    ${result}[success]    Action should be sent successfully
     Sleep    1s
@@ -44,11 +44,11 @@ Test PyRobo Action Navigation
     ${world_state_client}=    Create Service Client    /request_world_state    pyrobosim_msgs/srv/RequestWorldState
     
     # Check if service is available
-    ${service_available}=    Service Available Native    /request_world_state    timeout=5.0
+    ${service_available}=    Service Available    /request_world_state    timeout=5.0
     Should Be True    ${service_available}    World state service should be available
     
     # Get robot position after navigation using native service call
-    ${world_state}=    Call Service Native    /request_world_state    timeout=10.0
+    ${world_state}=    Call Service    /request_world_state    timeout=10.0
     Log    World state response: ${world_state}
     Log    World state : ${world_state}[state]
     Log    World state : ${world_state}[state][robots]
@@ -73,7 +73,7 @@ Test PyRobo Action Navigation
     Log    Number of objects: ${world_state}[state][objects].__len__()
     
     # Get service info for debugging
-    ${service_info}=    Get Service Info Native
+    ${service_info}=    Get Service Info
     Log    Service clients created: ${service_info}[clients]
     Log    Service client for /request_world_state: ${service_info}[clients][/request_world_state]
 

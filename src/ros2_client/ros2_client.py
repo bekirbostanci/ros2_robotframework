@@ -13,10 +13,11 @@ from .native_client import ROS2NativeClient
 
 class ROS2ClientLibrary(ROS2BaseClient):
     """
-    Main ROS2 client that automatically chooses between CLI and native operations.
+    Main ROS2 client that combines CLI and native operations.
 
     This is the primary client that users should use. It provides a unified interface
-    that automatically uses the most appropriate method (CLI or native) for each operation.
+    that uses native operations for services and publishers/subscribers, and CLI operations
+    for other functionality like listing topics, nodes, and launching processes.
     """
 
     def __init__(self, timeout: float = 10.0, node_name: str = "robotframework_ros2"):
@@ -143,7 +144,7 @@ class ROS2ClientLibrary(ROS2BaseClient):
         return self.cli_client.wait_for_topic(topic_name, timeout, check_interval)
 
     # ============================================================================
-    # SERVICE OPERATIONS (Smart Selection)
+    # ACTION OPERATIONS (CLI Only)
     # ============================================================================
 
     @keyword
@@ -198,35 +199,8 @@ class ROS2ClientLibrary(ROS2BaseClient):
         """Get detailed information about a service (always uses CLI)."""
         return self.cli_client.get_service_info(service_name, timeout)
 
-    @keyword
-    def call_service(
-        self,
-        service_name: str,
-        service_type: str,
-        request_data: Optional[str] = None,
-        timeout: Optional[float] = None,
-    ) -> Dict[str, Any]:
-        """Call a service (always uses CLI for now)."""
-        return self.cli_client.call_service(
-            service_name, service_type, request_data, timeout
-        )
-
-    @keyword
-    def service_exists(
-        self, service_name: str, timeout: Optional[float] = None
-    ) -> bool:
-        """Check if a service exists (always uses CLI)."""
-        return self.cli_client.service_exists(service_name, timeout)
-
-    @keyword
-    def wait_for_service(
-        self, service_name: str, timeout: float = 30.0, check_interval: float = 1.0
-    ) -> bool:
-        """Wait for a service to become available (always uses CLI)."""
-        return self.cli_client.wait_for_service(service_name, timeout, check_interval)
-
     # ============================================================================
-    # NATIVE SERVICE OPERATIONS
+    # SERVICE OPERATIONS (Native Only)
     # ============================================================================
 
     @keyword
@@ -235,22 +209,61 @@ class ROS2ClientLibrary(ROS2BaseClient):
         service_name: str,
         service_type: str,
     ) -> str:
-        """Create a native ROS2 service client."""
+        """
+        Create a native ROS2 service client.
+        
+        Args:
+            service_name: Name of the service (e.g., '/add_two_ints')
+            service_type: Type of the service (e.g., 'example_interfaces/srv/AddTwoInts')
+            
+        Returns:
+            Client ID that can be used with call_service and service_available
+            
+        Example:
+            | ${client_id}= | Create Service Client | /add_two_ints | example_interfaces/srv/AddTwoInts |
+        """
         return self.native_client.create_service_client(service_name, service_type)
 
     @keyword
-    def call_service_native(
+    def call_service(
         self,
         client_id: str,
         request_data: Any = None,
         timeout: float = 10.0,
     ) -> Optional[Dict[str, Any]]:
-        """Call a service using a native service client."""
+        """
+        Call a service using a native service client.
+        
+        Args:
+            client_id: ID of the service client (from create_service_client)
+            request_data: Request data to send to the service
+            timeout: Timeout for the service call
+            
+        Returns:
+            Service response data or None if failed
+            
+        Example:
+            | ${client_id}= | Create Service Client | /add_two_ints | example_interfaces/srv/AddTwoInts |
+            | ${result}= | Call Service | ${client_id} | {"a": 5, "b": 3} |
+        """
         return self.native_client.call_service(client_id, request_data, timeout)
 
     @keyword
-    def service_available_native(self, client_id: str, timeout: float = 1.0) -> bool:
-        """Check if a service is available using native client."""
+    def service_available(self, client_id: str, timeout: float = 1.0) -> bool:
+        """
+        Check if a service is available using native client.
+        
+        Args:
+            client_id: ID of the service client (from create_service_client)
+            timeout: Timeout for checking availability
+            
+        Returns:
+            True if service is available, False otherwise
+            
+        Example:
+            | ${client_id}= | Create Service Client | /add_two_ints | example_interfaces/srv/AddTwoInts |
+            | ${available}= | Service Available | ${client_id} |
+        """
         return self.native_client.service_available(client_id, timeout)
 
     @keyword
@@ -260,12 +273,34 @@ class ROS2ClientLibrary(ROS2BaseClient):
         service_type: str,
         callback_function: Optional[Any] = None,
     ) -> str:
-        """Create a native ROS2 service server."""
+        """
+        Create a native ROS2 service server.
+        
+        Args:
+            service_name: Name of the service (e.g., '/add_two_ints')
+            service_type: Type of the service (e.g., 'example_interfaces/srv/AddTwoInts')
+            callback_function: Optional callback function to handle service requests
+            
+        Returns:
+            Server ID for managing the service server
+            
+        Example:
+            | ${server_id}= | Create Service Server | /add_two_ints | example_interfaces/srv/AddTwoInts |
+        """
         return self.native_client.create_service_server(service_name, service_type, callback_function)
 
     @keyword
-    def get_service_info_native(self) -> Dict[str, Any]:
-        """Get information about native service clients and servers."""
+    def get_service_info(self) -> Dict[str, Any]:
+        """
+        Get information about native service clients and servers.
+        
+        Returns:
+            Dictionary containing information about all created service clients and servers
+            
+        Example:
+            | ${info}= | Get Service Info |
+            | Log | Service clients: ${info['clients']} |
+        """
         return self.native_client.get_service_info()
 
     # ============================================================================
