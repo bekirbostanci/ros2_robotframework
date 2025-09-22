@@ -1,0 +1,56 @@
+version: '3'
+
+vars:
+  PYTHON: "venv/bin/python"
+  PIP: "venv/bin/pip"
+
+tasks:
+  # Install development dependencies
+  install:
+    desc: "Install development dependencies"
+    cmds:
+      - "{{.PIP}} install black isort flake8 mypy"
+
+  # Format Python code
+  format:
+    desc: "Format Python code with Black and isort"
+    cmds:
+      - "{{.PYTHON}} -m black src/"
+      - "{{.PYTHON}} -m isort src/"
+
+  # Check formatting
+  check:
+    desc: "Check Python code formatting"
+    cmds:
+      - "{{.PYTHON}} -m black --check src/"
+      - "{{.PYTHON}} -m isort --check-only src/"
+
+  # Lint code
+  lint:
+    desc: "Lint Python code"
+    cmds:
+      - "{{.PYTHON}} -m flake8 src/"
+
+  # Type check
+  type-check:
+    desc: "Type check Python code"
+    cmds:
+      - "{{.PYTHON}} -m mypy src/"
+
+  # Build package for PyPI
+  build:
+    desc: "Build package for PyPI"
+    cmds:
+      - "{{.PIP}} install build twine"
+      - "{{.PYTHON}} -m build"
+      - "echo 'Package built in dist/ directory'"
+
+  # Clean build artifacts
+  clean:
+    desc: "Clean build artifacts"
+    cmds:
+      - "rm -rf build/"
+      - "rm -rf dist/"
+      - "rm -rf *.egg-info/"
+      - "find . -type d -name __pycache__ -exec rm -rf {} +"
+      - "find . -type f -name '*.pyc' -delete"

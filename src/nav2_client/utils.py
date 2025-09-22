@@ -2,12 +2,13 @@
 Common utilities and base classes for Navigation2 Robot Framework Library
 """
 
-import subprocess
 import math
-from typing import List, Dict, Any, Optional
+import subprocess
 from dataclasses import dataclass
-from robot.api.deco import keyword
+from typing import Any, Dict, List, Optional
+
 from robot.api import logger
+from robot.api.deco import keyword
 
 
 @dataclass

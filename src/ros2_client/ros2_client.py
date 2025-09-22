@@ -2,21 +2,24 @@
 Main ROS2 client that combines CLI and native operations
 """
 
-from typing import List, Dict, Any, Optional, Union
-from robot.api.deco import keyword
-from robot.api import logger
+import asyncio
+from typing import Any, Dict, List, Optional, Union
 
-from .utils import ROS2BaseClient
+from robot.api import logger
+from robot.api.deco import keyword
+
 from .cli_client import ROS2CLIClient
 from .native_client import ROS2NativeClient
+from .utils import ROS2BaseClient
 
 
 class ROS2ClientLibrary(ROS2BaseClient):
     """
-    Main ROS2 client that automatically chooses between CLI and native operations.
+    Main ROS2 client that combines CLI and native operations.
 
     This is the primary client that users should use. It provides a unified interface
-    that automatically uses the most appropriate method (CLI or native) for each operation.
+    that uses native operations for services and publishers/subscribers, and CLI operations
+    for other functionality like listing topics, nodes, and launching processes.
     """
 
     def __init__(self, timeout: float = 10.0, node_name: str = "robotframework_ros2"):
@@ -143,7 +146,7 @@ class ROS2ClientLibrary(ROS2BaseClient):
         return self.cli_client.wait_for_topic(topic_name, timeout, check_interval)
 
     # ============================================================================
-    # SERVICE OPERATIONS (Smart Selection)
+    # ACTION OPERATIONS (CLI Only)
     # ============================================================================
 
     @keyword
@@ -152,43 +155,212 @@ class ROS2ClientLibrary(ROS2BaseClient):
         return self.cli_client.get_action_list()
 
     @keyword
+    def send_action_goal(
+        self,
+        action_name: str,
+        action_type: str,
+        goal_data: str,
+        timeout: Optional[float] = None,
+    ) -> Dict[str, Any]:
+        """
+        Send a goal to a ROS2 action server (always uses CLI).
+
+        Args:
+            action_name: Name of the action (e.g., '/execute_action')
+            action_type: Type of the action (e.g., 'pyrobosim_msgs/action/ExecuteTaskAction')
+            goal_data: Goal data as a JSON string
+            timeout: Override default timeout for this operation
+
+        Returns:
+            Dictionary containing the result of the action
+
+        Example:
+            | ${result}= | Send Action Goal | /execute_action | pyrobosim_msgs/action/ExecuteTaskAction | '{"action": {"robot": "robot", "type": "navigate", "source_location": "kitchen", "target_location": "desk"}, "realtime_factor": 1.0}' |
+        """
+        return self.cli_client.send_action_goal(
+            action_name, action_type, goal_data, timeout
+        )
+
+    @keyword
+    def async_send_action_goal(
+        self,
+        action_name: str,
+        action_type: str,
+        goal_data: str,
+        timeout: Optional[float] = None,
+    ) -> None:
+        """
+        Send a goal to a ROS2 action server asynchronously (fire and forget).
+
+        This function starts the action goal but doesn't wait for completion.
+        It returns immediately after sending the goal.
+
+        Args:
+            action_name: Name of the action (e.g., '/execute_action')
+            action_type: Type of the action (e.g., 'pyrobosim_msgs/action/ExecuteTaskAction')
+            goal_data: Goal data as a JSON string
+            timeout: Override default timeout for this operation (not used in fire-and-forget mode)
+
+        Returns:
+            None
+
+        Example:
+            | Async Send Action Goal | /execute_action | pyrobosim_msgs/action/ExecuteTaskAction | '{"action": {"robot": "robot0", "type": "navigate", "source_location": "kitchen", "target_location": "desk"}, "realtime_factor": 1.0}' |
+        """
+        # Fire and forget - start the action goal in background without waiting
+        import threading
+
+        def _send_goal_background():
+            try:
+                # Use a very short timeout to just send the goal and return
+                command = ["action", "send_goal", action_name, action_type, goal_data]
+
+                # Run the command with a very short timeout to just initiate the goal
+                # This will send the goal but not wait for completion
+                import subprocess
+
+                process = subprocess.Popen(
+                    ["ros2"] + command,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                )
+
+                # Don't wait for the process to complete - just start it and return
+                # The action will continue running in the background
+                logger.info(
+                    f"Started action goal for '{action_name}' (fire and forget)"
+                )
+
+            except Exception as e:
+                logger.error(f"Failed to start action goal for '{action_name}': {e}")
+
+        # Start the background thread
+        thread = threading.Thread(target=_send_goal_background, daemon=True)
+        thread.start()
+
+    @keyword
+    def get_action_info(
+        self, action_name: str, timeout: Optional[float] = None
+    ) -> Dict[str, Any]:
+        """Get detailed information about an action (always uses CLI)."""
+        return self.cli_client.get_action_info(action_name, timeout)
+
+    @keyword
+    def action_exists(self, action_name: str, timeout: Optional[float] = None) -> bool:
+        """Check if an action exists (always uses CLI)."""
+        return self.cli_client.action_exists(action_name, timeout)
+
+    @keyword
     def list_services(self, timeout: Optional[float] = None) -> List[str]:
         """List all available services (always uses CLI)."""
         return self.cli_client.list_services(timeout)
 
+    # ============================================================================
+    # SERVICE OPERATIONS (Native Only)
+    # ============================================================================
+
     @keyword
-    def get_service_info(
-        self, service_name: str, timeout: Optional[float] = None
-    ) -> Dict[str, Any]:
-        """Get detailed information about a service (always uses CLI)."""
-        return self.cli_client.get_service_info(service_name, timeout)
+    def create_service_client(
+        self,
+        service_name: str,
+        service_type: str,
+    ) -> str:
+        """
+        Create a native ROS2 service client.
+
+        Args:
+            service_name: Name of the service (e.g., '/add_two_ints')
+            service_type: Type of the service (e.g., 'example_interfaces/srv/AddTwoInts')
+
+        Returns:
+            Client ID that can be used with call_service and service_available
+
+        Example:
+            | ${client_id}= | Create Service Client | /add_two_ints | example_interfaces/srv/AddTwoInts |
+        """
+        return self.native_client.create_service_client(service_name, service_type)
 
     @keyword
     def call_service(
         self,
+        client_id: str,
+        request_data: Any = None,
+        timeout: float = 10.0,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Call a service using a native service client.
+
+        Args:
+            client_id: ID of the service client (from create_service_client)
+            request_data: Request data to send to the service
+            timeout: Timeout for the service call
+
+        Returns:
+            Service response data or None if failed
+
+        Example:
+            | ${client_id}= | Create Service Client | /add_two_ints | example_interfaces/srv/AddTwoInts |
+            | ${result}= | Call Service | ${client_id} | {"a": 5, "b": 3} |
+        """
+        return self.native_client.call_service(client_id, request_data, timeout)
+
+    @keyword
+    def service_available(self, client_id: str, timeout: float = 1.0) -> bool:
+        """
+        Check if a service is available using native client.
+
+        Args:
+            client_id: ID of the service client (from create_service_client)
+            timeout: Timeout for checking availability
+
+        Returns:
+            True if service is available, False otherwise
+
+        Example:
+            | ${client_id}= | Create Service Client | /add_two_ints | example_interfaces/srv/AddTwoInts |
+            | ${available}= | Service Available | ${client_id} |
+        """
+        return self.native_client.service_available(client_id, timeout)
+
+    @keyword
+    def create_service_server(
+        self,
         service_name: str,
         service_type: str,
-        request_data: str,
-        timeout: Optional[float] = None,
-    ) -> Dict[str, Any]:
-        """Call a service (always uses CLI for now)."""
-        return self.cli_client.call_service(
-            service_name, service_type, request_data, timeout
+        callback_function: Optional[Any] = None,
+    ) -> str:
+        """
+        Create a native ROS2 service server.
+
+        Args:
+            service_name: Name of the service (e.g., '/add_two_ints')
+            service_type: Type of the service (e.g., 'example_interfaces/srv/AddTwoInts')
+            callback_function: Optional callback function to handle service requests
+
+        Returns:
+            Server ID for managing the service server
+
+        Example:
+            | ${server_id}= | Create Service Server | /add_two_ints | example_interfaces/srv/AddTwoInts |
+        """
+        return self.native_client.create_service_server(
+            service_name, service_type, callback_function
         )
 
     @keyword
-    def service_exists(
-        self, service_name: str, timeout: Optional[float] = None
-    ) -> bool:
-        """Check if a service exists (always uses CLI)."""
-        return self.cli_client.service_exists(service_name, timeout)
+    def get_service_info(self) -> Dict[str, Any]:
+        """
+        Get information about native service clients and servers.
 
-    @keyword
-    def wait_for_service(
-        self, service_name: str, timeout: float = 30.0, check_interval: float = 1.0
-    ) -> bool:
-        """Wait for a service to become available (always uses CLI)."""
-        return self.cli_client.wait_for_service(service_name, timeout, check_interval)
+        Returns:
+            Dictionary containing information about all created service clients and servers
+
+        Example:
+            | ${info}= | Get Service Info |
+            | Log | Service clients: ${info['clients']} |
+        """
+        return self.native_client.get_service_info()
 
     # ============================================================================
     # NODE OPERATIONS (Always CLI)
@@ -324,9 +496,12 @@ class ROS2ClientLibrary(ROS2BaseClient):
         package_name: str,
         executable_name: str,
         arguments: Optional[List[str]] = None,
+        setup_script: Optional[str] = None,
     ):
         """Run a node (always uses CLI)."""
-        return self.cli_client.run_node(package_name, executable_name, arguments)
+        return self.cli_client.run_node(
+            package_name, executable_name, arguments, setup_script
+        )
 
     @keyword
     def run_node_with_remap(
@@ -335,11 +510,12 @@ class ROS2ClientLibrary(ROS2BaseClient):
         executable_name: str,
         remaps: Optional[Dict[str, str]] = None,
         arguments: Optional[List[str]] = None,
+        setup_script: Optional[str] = None,
         timeout: Optional[float] = None,
     ):
         """Run a node with remapping (always uses CLI)."""
         return self.cli_client.run_node_with_remap(
-            package_name, executable_name, remaps, arguments, timeout
+            package_name, executable_name, remaps, arguments, setup_script
         )
 
     @keyword

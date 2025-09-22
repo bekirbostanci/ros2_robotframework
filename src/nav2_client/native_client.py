@@ -2,27 +2,29 @@
 Native Navigation2 operations using rclpy
 """
 
-import rclpy
-from rclpy.node import Node
-from rclpy.callback_groups import ReentrantCallbackGroup
-from rclpy.executors import MultiThreadedExecutor
-from rclpy.action import ActionClient
+import math
 import threading
 import time
-import math
-from typing import List, Dict, Any, Optional
-from robot.api.deco import keyword
-from robot.api import logger
+from typing import Any, Dict, List, Optional
+
+import rclpy
 
 # Navigation2 message imports
 from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped, Twist
-from nav2_msgs.action import NavigateToPose, NavigateThroughPoses
-from std_srvs.srv import Empty
+from nav2_msgs.action import NavigateThroughPoses, NavigateToPose
+from rclpy.action import ActionClient
+from rclpy.callback_groups import ReentrantCallbackGroup
+from rclpy.executors import MultiThreadedExecutor
+from rclpy.node import Node
+from robot.api import logger
+from robot.api.deco import keyword
 from sensor_msgs.msg import LaserScan
+from std_srvs.srv import Empty
+
+from .utils import Nav2BaseClient, NavigationResult, Pose
+
 # Note: Navigation2 services are typically actions, not services
 # We'll use actions for navigation and basic services for costmap operations
-
-from .utils import Nav2BaseClient, Pose, NavigationResult
 
 
 class Nav2NativeClient(Nav2BaseClient):
@@ -885,25 +887,33 @@ class Nav2NativeClient(Nav2BaseClient):
 
         status = {
             "navigation_active": self._navigation_active,
-            "current_pose": self._current_pose.to_dict()
-            if self._current_pose
-            else None,
+            "current_pose": (
+                self._current_pose.to_dict() if self._current_pose else None
+            ),
             "goal_pose": self._goal_pose.to_dict() if self._goal_pose else None,
             "action_servers_ready": {
-                "navigate_to_pose": self._navigate_to_pose_action_client.server_is_ready()
-                if self._navigate_to_pose_action_client
-                else False,
-                "navigate_through_poses": self._navigate_through_poses_action_client.server_is_ready()
-                if self._navigate_through_poses_action_client
-                else False,
+                "navigate_to_pose": (
+                    self._navigate_to_pose_action_client.server_is_ready()
+                    if self._navigate_to_pose_action_client
+                    else False
+                ),
+                "navigate_through_poses": (
+                    self._navigate_through_poses_action_client.server_is_ready()
+                    if self._navigate_through_poses_action_client
+                    else False
+                ),
             },
             "services_ready": {
-                "clear_global_costmap": self._clear_global_costmap_client.service_is_ready()
-                if self._clear_global_costmap_client
-                else False,
-                "clear_local_costmap": self._clear_local_costmap_client.service_is_ready()
-                if self._clear_local_costmap_client
-                else False,
+                "clear_global_costmap": (
+                    self._clear_global_costmap_client.service_is_ready()
+                    if self._clear_global_costmap_client
+                    else False
+                ),
+                "clear_local_costmap": (
+                    self._clear_local_costmap_client.service_is_ready()
+                    if self._clear_local_costmap_client
+                    else False
+                ),
             },
         }
 
@@ -973,26 +983,34 @@ class Nav2NativeClient(Nav2BaseClient):
             "initialized": self._initialized,
             "node_name": self.node_name,
             "navigation_active": self._navigation_active,
-            "current_pose": self._current_pose.to_dict()
-            if self._current_pose
-            else None,
+            "current_pose": (
+                self._current_pose.to_dict() if self._current_pose else None
+            ),
             "goal_pose": self._goal_pose.to_dict() if self._goal_pose else None,
             "buffered_topics": list(self._message_buffer.keys()),
             "total_messages": sum(len(msgs) for msgs in self._message_buffer.values()),
             "action_servers_available": {
-                "navigate_to_pose": self._navigate_to_pose_action_client.server_is_ready()
-                if self._navigate_to_pose_action_client
-                else False,
-                "navigate_through_poses": self._navigate_through_poses_action_client.server_is_ready()
-                if self._navigate_through_poses_action_client
-                else False,
+                "navigate_to_pose": (
+                    self._navigate_to_pose_action_client.server_is_ready()
+                    if self._navigate_to_pose_action_client
+                    else False
+                ),
+                "navigate_through_poses": (
+                    self._navigate_through_poses_action_client.server_is_ready()
+                    if self._navigate_through_poses_action_client
+                    else False
+                ),
             },
             "services_available": {
-                "clear_global_costmap": self._clear_global_costmap_client.service_is_ready()
-                if self._clear_global_costmap_client
-                else False,
-                "clear_local_costmap": self._clear_local_costmap_client.service_is_ready()
-                if self._clear_local_costmap_client
-                else False,
+                "clear_global_costmap": (
+                    self._clear_global_costmap_client.service_is_ready()
+                    if self._clear_global_costmap_client
+                    else False
+                ),
+                "clear_local_costmap": (
+                    self._clear_local_costmap_client.service_is_ready()
+                    if self._clear_local_costmap_client
+                    else False
+                ),
             },
         }
