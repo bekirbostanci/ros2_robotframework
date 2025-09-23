@@ -1184,7 +1184,7 @@ class ROS2ClientLibrary(ROS2BaseClient):
         self,
         package_name: str,
         launch_file_name: str,
-        arguments: Optional[Dict[str, str]] = None,
+        arguments: Optional[str] = None,
     ):
         """
         Launch a ROS2 package launch file.

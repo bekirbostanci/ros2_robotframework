@@ -265,7 +265,7 @@ class ROS2CLIClient(ROS2CLIUtils):
         self,
         package_name: str,
         launch_file_name: str,
-        arguments: Optional[Dict[str, str]] = None,
+        arguments: Optional[str] = None,
     ) -> subprocess.Popen:
         """
         Launch a ROS2 launch file from a package.
@@ -287,8 +287,7 @@ class ROS2CLIClient(ROS2CLIUtils):
 
         # Add arguments if provided
         if arguments:
-            for key, value in arguments.items():
-                command.append(f"{key}:={value}")
+            command.append(arguments)
 
         # Run the launch command in the background
         full_command = [self._ros2_executable] + command
