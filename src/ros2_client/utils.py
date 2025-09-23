@@ -211,40 +211,7 @@ class ROS2CLIUtils(ROS2BaseClient):
             logger.info(f"Echoed message from '{topic_name}': {message}")
             return [message] if message else []
 
-    @keyword
-    def publish_topic(
-        self,
-        topic_name: str,
-        message_type: str,
-        data: str,
-        timeout: Optional[float] = None,
-    ) -> bool:
-        """
-        Publish a message to a topic.
-
-        Args:
-            topic_name: Name of the topic to publish to
-            message_type: Type of the message (e.g., 'std_msgs/msg/String')
-            data: Message data as a string
-            timeout: Override default timeout for this operation
-
-        Returns:
-            True if publish was successful
-
-        Example:
-            | ${success}= | Publish Topic | /chatter | std_msgs/msg/String | "Hello World" |
-            | Should Be True | ${success} |
-        """
-        result = self._run_ros2_command(
-            ["topic", "pub", "--once", topic_name, message_type, data], timeout=timeout
-        )
-
-        if result.returncode != 0:
-            logger.error(f"Failed to publish to topic '{topic_name}': {result.stderr}")
-            return False
-
-        logger.info(f"Successfully published to topic '{topic_name}': {data}")
-        return True
+    # publish_topic function removed - use native publisher instead
 
     @keyword
     def topic_exists(self, topic_name: str, timeout: Optional[float] = None) -> bool:
