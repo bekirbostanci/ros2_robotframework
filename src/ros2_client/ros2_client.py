@@ -33,12 +33,12 @@ class ROS2ClientLibrary(ROS2BaseClient):
 
     This is the primary client that users should use. It provides a unified interface
     that intelligently combines:
-    - CLI operations for discovery, monitoring, and system management
-    - Native operations for real-time communication and performance-critical tasks
+    - Native operations for all topic operations, real-time communication, and performance-critical tasks
+    - CLI operations for system management, launch operations, and process management
 
     The client automatically selects the best approach for each operation:
-    - Native operations for publishers, subscribers, and service clients (better performance)
-    - CLI operations for discovery, monitoring, and system management (more reliable)
+    - Native operations for all topic operations, publishers, subscribers, and service clients (better performance)
+    - CLI operations for system management, launch operations, and process management (more reliable)
 
     Example:
         | Library | ROS2ClientLibrary | timeout=10.0 | node_name=test_robot |
@@ -83,7 +83,7 @@ class ROS2ClientLibrary(ROS2BaseClient):
         """
         List all available ROS2 topics.
 
-        Uses CLI command: ros2 topic list
+        Uses native ROS2 operations for better performance.
 
         Args:
             timeout: Override default timeout for this operation
@@ -95,7 +95,7 @@ class ROS2ClientLibrary(ROS2BaseClient):
             | ${topics}= | List Topics |
             | Should Contain | ${topics} | /chatter |
         """
-        return self.cli_client.list_topics(timeout)
+        return self.native_client.list_topics(timeout)
 
     @keyword
     def get_topic_info(
@@ -104,7 +104,7 @@ class ROS2ClientLibrary(ROS2BaseClient):
         """
         Get detailed information about a topic.
 
-        Uses CLI command: ros2 topic info
+        Uses native ROS2 operations for better performance.
 
         Args:
             topic_name: Name of the topic
@@ -117,14 +117,14 @@ class ROS2ClientLibrary(ROS2BaseClient):
             | ${info}= | Get Topic Info | /chatter |
             | Log | Topic type: ${info['type']} |
         """
-        return self.cli_client.get_topic_info(topic_name, timeout)
+        return self.native_client.get_topic_info(topic_name, timeout)
 
     @keyword
     def get_topic_type(self, topic_name: str, timeout: Optional[float] = None) -> str:
         """
         Get the message type for a topic.
 
-        Uses CLI command: ros2 topic type
+        Uses native ROS2 operations for better performance.
 
         Args:
             topic_name: Name of the topic
@@ -137,14 +137,7 @@ class ROS2ClientLibrary(ROS2BaseClient):
             | ${type}= | Get Topic Type | /chatter |
             | Should Be Equal | ${type} | std_msgs/msg/String |
         """
-        result = self.cli_client._run_ros2_command(
-            ["topic", "type", topic_name], timeout=timeout
-        )
-        if result.returncode != 0:
-            raise RuntimeError(
-                f"Failed to get topic type for '{topic_name}': {result.stderr}"
-            )
-        return result.stdout.strip()
+        return self.native_client.get_topic_type(topic_name, timeout)
 
     @keyword
     def find_topics_by_type(
@@ -153,7 +146,7 @@ class ROS2ClientLibrary(ROS2BaseClient):
         """
         Find topics that use a specific message type.
 
-        Uses CLI command: ros2 topic find
+        Uses native ROS2 operations for better performance.
 
         Args:
             message_type: Message type to search for (e.g., 'std_msgs/msg/String')
@@ -166,21 +159,14 @@ class ROS2ClientLibrary(ROS2BaseClient):
             | ${string_topics}= | Find Topics By Type | std_msgs/msg/String |
             | Should Contain | ${string_topics} | /chatter |
         """
-        result = self.cli_client._run_ros2_command(
-            ["topic", "find", message_type], timeout=timeout
-        )
-        if result.returncode != 0:
-            raise RuntimeError(
-                f"Failed to find topics by type '{message_type}': {result.stderr}"
-            )
-        return [
-            line.strip() for line in result.stdout.strip().split("\n") if line.strip()
-        ]
+        return self.native_client.find_topics_by_type(message_type, timeout)
 
     @keyword
     def topic_exists(self, topic_name: str, timeout: Optional[float] = None) -> bool:
         """
         Check if a topic exists.
+
+        Uses native ROS2 operations for better performance.
 
         Args:
             topic_name: Name of the topic to check
@@ -193,7 +179,7 @@ class ROS2ClientLibrary(ROS2BaseClient):
             | ${exists}= | Topic Exists | /chatter |
             | Should Be True | ${exists} |
         """
-        return self.cli_client.topic_exists(topic_name, timeout)
+        return self.native_client.topic_exists(topic_name, timeout)
 
     @keyword
     def wait_for_topic(
@@ -201,6 +187,8 @@ class ROS2ClientLibrary(ROS2BaseClient):
     ) -> bool:
         """
         Wait for a topic to become available.
+
+        Uses native ROS2 operations for better performance.
 
         Args:
             topic_name: Name of the topic to wait for
@@ -214,7 +202,7 @@ class ROS2ClientLibrary(ROS2BaseClient):
             | ${available}= | Wait For Topic | /chatter | timeout=10.0 |
             | Should Be True | ${available} |
         """
-        return self.cli_client.wait_for_topic(topic_name, timeout, check_interval)
+        return self.native_client.wait_for_topic(topic_name, timeout, check_interval)
 
     # --- Publishing and Subscribing (Native Operations) ---
     @keyword
@@ -298,7 +286,7 @@ class ROS2ClientLibrary(ROS2BaseClient):
         """
         return self.native_client.get_latest_message(topic_name)
 
-    # --- Monitoring and Analysis (CLI Operations) ---
+    # --- Monitoring and Analysis (Native Operations) ---
     @keyword
     def echo_topic(
         self, topic_name: str, count: int = 1, timeout: Optional[float] = None
@@ -306,7 +294,7 @@ class ROS2ClientLibrary(ROS2BaseClient):
         """
         Echo messages from a topic.
 
-        Uses CLI command: ros2 topic echo
+        Uses native ROS2 operations for better performance.
 
         Args:
             topic_name: Name of the topic
@@ -320,14 +308,14 @@ class ROS2ClientLibrary(ROS2BaseClient):
             | ${messages}= | Echo Topic | /chatter | count=5 |
             | Length Should Be | ${messages} | 5 |
         """
-        return self.cli_client.echo_topic(topic_name, count, timeout)
+        return self.native_client.echo_topic(topic_name, count, timeout)
 
     @keyword
     def get_topic_frequency(self, topic_name: str, timeout: float = 10.0) -> float:
         """
         Get the message frequency for a topic.
 
-        Uses CLI command: ros2 topic hz
+        Uses native ROS2 operations for better performance.
 
         Args:
             topic_name: Name of the topic
@@ -340,30 +328,14 @@ class ROS2ClientLibrary(ROS2BaseClient):
             | ${freq}= | Get Topic Frequency | /chatter | timeout=5.0 |
             | Should Be True | ${freq} > 0 |
         """
-        result = self.cli_client._run_ros2_command(
-            ["topic", "hz", topic_name], timeout=timeout
-        )
-        if result.returncode != 0:
-            raise RuntimeError(
-                f"Failed to get topic frequency for '{topic_name}': {result.stderr}"
-            )
-
-        # Parse frequency from output (e.g., "average rate: 10.000 Hz")
-        for line in result.stdout.split("\n"):
-            if "average rate:" in line.lower():
-                try:
-                    freq_str = line.split(":")[1].strip().split()[0]
-                    return float(freq_str)
-                except (IndexError, ValueError):
-                    pass
-        return 0.0
+        return self.native_client.get_topic_frequency(topic_name, timeout)
 
     @keyword
     def get_topic_bandwidth(self, topic_name: str, timeout: float = 10.0) -> float:
         """
         Get the bandwidth usage for a topic.
 
-        Uses CLI command: ros2 topic bw
+        Uses native ROS2 operations for better performance.
 
         Args:
             topic_name: Name of the topic
@@ -376,30 +348,14 @@ class ROS2ClientLibrary(ROS2BaseClient):
             | ${bw}= | Get Topic Bandwidth | /chatter | timeout=5.0 |
             | Log | Bandwidth: ${bw} bytes/sec |
         """
-        result = self.cli_client._run_ros2_command(
-            ["topic", "bw", topic_name], timeout=timeout
-        )
-        if result.returncode != 0:
-            raise RuntimeError(
-                f"Failed to get topic bandwidth for '{topic_name}': {result.stderr}"
-            )
-
-        # Parse bandwidth from output (e.g., "average: 100.0 B/s")
-        for line in result.stdout.split("\n"):
-            if "average:" in line.lower():
-                try:
-                    bw_str = line.split(":")[1].strip().split()[0]
-                    return float(bw_str)
-                except (IndexError, ValueError):
-                    pass
-        return 0.0
+        return self.native_client.get_topic_bandwidth(topic_name, timeout)
 
     @keyword
     def get_topic_delay(self, topic_name: str, timeout: float = 10.0) -> float:
         """
         Get the message delay for a topic.
 
-        Uses CLI command: ros2 topic delay
+        Uses native ROS2 operations for better performance.
 
         Args:
             topic_name: Name of the topic
@@ -412,23 +368,7 @@ class ROS2ClientLibrary(ROS2BaseClient):
             | ${delay}= | Get Topic Delay | /chatter | timeout=5.0 |
             | Should Be True | ${delay} >= 0 |
         """
-        result = self.cli_client._run_ros2_command(
-            ["topic", "delay", topic_name], timeout=timeout
-        )
-        if result.returncode != 0:
-            raise RuntimeError(
-                f"Failed to get topic delay for '{topic_name}': {result.stderr}"
-            )
-
-        # Parse delay from output (e.g., "average delay: 0.100 s")
-        for line in result.stdout.split("\n"):
-            if "average delay:" in line.lower():
-                try:
-                    delay_str = line.split(":")[1].strip().split()[0]
-                    return float(delay_str)
-                except (IndexError, ValueError):
-                    pass
-        return 0.0
+        return self.native_client.get_topic_delay(topic_name, timeout)
 
     # ============================================================================
     # ACTION OPERATIONS
