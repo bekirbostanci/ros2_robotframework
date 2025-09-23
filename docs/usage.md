@@ -59,7 +59,7 @@ Test Services
     Log    Available services: ${services}
     
     # Check if a service exists
-    ${exists}=    Service Exists    /add_two_ints
+    ${exists}=    Service Available    /add_two_ints
     Should Be True    ${exists}
     
     # Get service information

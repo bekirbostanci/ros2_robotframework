@@ -137,9 +137,13 @@ class ROS2ClientLibrary(ROS2BaseClient):
             | ${type}= | Get Topic Type | /chatter |
             | Should Be Equal | ${type} | std_msgs/msg/String |
         """
-        result = self.cli_client._run_ros2_command(["topic", "type", topic_name], timeout=timeout)
+        result = self.cli_client._run_ros2_command(
+            ["topic", "type", topic_name], timeout=timeout
+        )
         if result.returncode != 0:
-            raise RuntimeError(f"Failed to get topic type for '{topic_name}': {result.stderr}")
+            raise RuntimeError(
+                f"Failed to get topic type for '{topic_name}': {result.stderr}"
+            )
         return result.stdout.strip()
 
     @keyword
@@ -162,10 +166,16 @@ class ROS2ClientLibrary(ROS2BaseClient):
             | ${string_topics}= | Find Topics By Type | std_msgs/msg/String |
             | Should Contain | ${string_topics} | /chatter |
         """
-        result = self.cli_client._run_ros2_command(["topic", "find", message_type], timeout=timeout)
+        result = self.cli_client._run_ros2_command(
+            ["topic", "find", message_type], timeout=timeout
+        )
         if result.returncode != 0:
-            raise RuntimeError(f"Failed to find topics by type '{message_type}': {result.stderr}")
-        return [line.strip() for line in result.stdout.strip().split("\n") if line.strip()]
+            raise RuntimeError(
+                f"Failed to find topics by type '{message_type}': {result.stderr}"
+            )
+        return [
+            line.strip() for line in result.stdout.strip().split("\n") if line.strip()
+        ]
 
     @keyword
     def topic_exists(self, topic_name: str, timeout: Optional[float] = None) -> bool:
@@ -330,15 +340,19 @@ class ROS2ClientLibrary(ROS2BaseClient):
             | ${freq}= | Get Topic Frequency | /chatter | timeout=5.0 |
             | Should Be True | ${freq} > 0 |
         """
-        result = self.cli_client._run_ros2_command(["topic", "hz", topic_name], timeout=timeout)
+        result = self.cli_client._run_ros2_command(
+            ["topic", "hz", topic_name], timeout=timeout
+        )
         if result.returncode != 0:
-            raise RuntimeError(f"Failed to get topic frequency for '{topic_name}': {result.stderr}")
-        
+            raise RuntimeError(
+                f"Failed to get topic frequency for '{topic_name}': {result.stderr}"
+            )
+
         # Parse frequency from output (e.g., "average rate: 10.000 Hz")
-        for line in result.stdout.split('\n'):
-            if 'average rate:' in line.lower():
+        for line in result.stdout.split("\n"):
+            if "average rate:" in line.lower():
                 try:
-                    freq_str = line.split(':')[1].strip().split()[0]
+                    freq_str = line.split(":")[1].strip().split()[0]
                     return float(freq_str)
                 except (IndexError, ValueError):
                     pass
@@ -362,15 +376,19 @@ class ROS2ClientLibrary(ROS2BaseClient):
             | ${bw}= | Get Topic Bandwidth | /chatter | timeout=5.0 |
             | Log | Bandwidth: ${bw} bytes/sec |
         """
-        result = self.cli_client._run_ros2_command(["topic", "bw", topic_name], timeout=timeout)
+        result = self.cli_client._run_ros2_command(
+            ["topic", "bw", topic_name], timeout=timeout
+        )
         if result.returncode != 0:
-            raise RuntimeError(f"Failed to get topic bandwidth for '{topic_name}': {result.stderr}")
-        
+            raise RuntimeError(
+                f"Failed to get topic bandwidth for '{topic_name}': {result.stderr}"
+            )
+
         # Parse bandwidth from output (e.g., "average: 100.0 B/s")
-        for line in result.stdout.split('\n'):
-            if 'average:' in line.lower():
+        for line in result.stdout.split("\n"):
+            if "average:" in line.lower():
                 try:
-                    bw_str = line.split(':')[1].strip().split()[0]
+                    bw_str = line.split(":")[1].strip().split()[0]
                     return float(bw_str)
                 except (IndexError, ValueError):
                     pass
@@ -394,15 +412,19 @@ class ROS2ClientLibrary(ROS2BaseClient):
             | ${delay}= | Get Topic Delay | /chatter | timeout=5.0 |
             | Should Be True | ${delay} >= 0 |
         """
-        result = self.cli_client._run_ros2_command(["topic", "delay", topic_name], timeout=timeout)
+        result = self.cli_client._run_ros2_command(
+            ["topic", "delay", topic_name], timeout=timeout
+        )
         if result.returncode != 0:
-            raise RuntimeError(f"Failed to get topic delay for '{topic_name}': {result.stderr}")
-        
+            raise RuntimeError(
+                f"Failed to get topic delay for '{topic_name}': {result.stderr}"
+            )
+
         # Parse delay from output (e.g., "average delay: 0.100 s")
-        for line in result.stdout.split('\n'):
-            if 'average delay:' in line.lower():
+        for line in result.stdout.split("\n"):
+            if "average delay:" in line.lower():
                 try:
-                    delay_str = line.split(':')[1].strip().split()[0]
+                    delay_str = line.split(":")[1].strip().split()[0]
                     return float(delay_str)
                 except (IndexError, ValueError):
                     pass
@@ -471,9 +493,13 @@ class ROS2ClientLibrary(ROS2BaseClient):
             | ${type}= | Get Action Type | /execute_action |
             | Should Be Equal | ${type} | pyrobosim_msgs/action/ExecuteTaskAction |
         """
-        result = self.cli_client._run_ros2_command(["action", "type", action_name], timeout=timeout)
+        result = self.cli_client._run_ros2_command(
+            ["action", "type", action_name], timeout=timeout
+        )
         if result.returncode != 0:
-            raise RuntimeError(f"Failed to get action type for '{action_name}': {result.stderr}")
+            raise RuntimeError(
+                f"Failed to get action type for '{action_name}': {result.stderr}"
+            )
         return result.stdout.strip()
 
     @keyword
@@ -651,9 +677,13 @@ class ROS2ClientLibrary(ROS2BaseClient):
             | ${type}= | Get Service Type | /add_two_ints |
             | Should Be Equal | ${type} | example_interfaces/srv/AddTwoInts |
         """
-        result = self.cli_client._run_ros2_command(["service", "type", service_name], timeout=timeout)
+        result = self.cli_client._run_ros2_command(
+            ["service", "type", service_name], timeout=timeout
+        )
         if result.returncode != 0:
-            raise RuntimeError(f"Failed to get service type for '{service_name}': {result.stderr}")
+            raise RuntimeError(
+                f"Failed to get service type for '{service_name}': {result.stderr}"
+            )
         return result.stdout.strip()
 
     @keyword
@@ -676,10 +706,16 @@ class ROS2ClientLibrary(ROS2BaseClient):
             | ${add_services}= | Find Services By Type | example_interfaces/srv/AddTwoInts |
             | Should Contain | ${add_services} | /add_two_ints |
         """
-        result = self.cli_client._run_ros2_command(["service", "find", service_type], timeout=timeout)
+        result = self.cli_client._run_ros2_command(
+            ["service", "find", service_type], timeout=timeout
+        )
         if result.returncode != 0:
-            raise RuntimeError(f"Failed to find services by type '{service_type}': {result.stderr}")
-        return [line.strip() for line in result.stdout.strip().split("\n") if line.strip()]
+            raise RuntimeError(
+                f"Failed to find services by type '{service_type}': {result.stderr}"
+            )
+        return [
+            line.strip() for line in result.stdout.strip().split("\n") if line.strip()
+        ]
 
     # --- Service Communication (Native Operations) ---
     @keyword
@@ -1037,10 +1073,16 @@ class ROS2ClientLibrary(ROS2BaseClient):
             | ${params}= | List Node Parameters | /my_node |
             | Should Contain | ${params} | use_sim_time |
         """
-        result = self.cli_client._run_ros2_command(["param", "list", node_name], timeout=timeout)
+        result = self.cli_client._run_ros2_command(
+            ["param", "list", node_name], timeout=timeout
+        )
         if result.returncode != 0:
-            raise RuntimeError(f"Failed to list parameters for node '{node_name}': {result.stderr}")
-        return [line.strip() for line in result.stdout.strip().split("\n") if line.strip()]
+            raise RuntimeError(
+                f"Failed to list parameters for node '{node_name}': {result.stderr}"
+            )
+        return [
+            line.strip() for line in result.stdout.strip().split("\n") if line.strip()
+        ]
 
     @keyword
     def get_node_parameter(
@@ -1063,10 +1105,14 @@ class ROS2ClientLibrary(ROS2BaseClient):
             | ${value}= | Get Node Parameter | /my_node | use_sim_time |
             | Should Be Equal | ${value} | False |
         """
-        result = self.cli_client._run_ros2_command(["param", "get", node_name, param_name], timeout=timeout)
+        result = self.cli_client._run_ros2_command(
+            ["param", "get", node_name, param_name], timeout=timeout
+        )
         if result.returncode != 0:
-            raise RuntimeError(f"Failed to get parameter '{param_name}' from node '{node_name}': {result.stderr}")
-        
+            raise RuntimeError(
+                f"Failed to get parameter '{param_name}' from node '{node_name}': {result.stderr}"
+            )
+
         value_text = result.stdout.strip()
         # Try to parse the value
         try:
@@ -1112,10 +1158,14 @@ class ROS2ClientLibrary(ROS2BaseClient):
             value_str = str(value).lower()
         else:
             value_str = str(value)
-            
-        result = self.cli_client._run_ros2_command(["param", "set", node_name, param_name, value_str], timeout=timeout)
+
+        result = self.cli_client._run_ros2_command(
+            ["param", "set", node_name, param_name, value_str], timeout=timeout
+        )
         if result.returncode != 0:
-            logger.error(f"Failed to set parameter '{param_name}' on node '{node_name}': {result.stderr}")
+            logger.error(
+                f"Failed to set parameter '{param_name}' on node '{node_name}': {result.stderr}"
+            )
             return False
         return True
 
@@ -1146,11 +1196,13 @@ class ROS2ClientLibrary(ROS2BaseClient):
         command = ["param", "dump", node_name]
         if output_file:
             command.extend(["--output-dir", output_file])
-            
+
         result = self.cli_client._run_ros2_command(command, timeout=timeout)
         if result.returncode != 0:
-            raise RuntimeError(f"Failed to dump parameters for node '{node_name}': {result.stderr}")
-        
+            raise RuntimeError(
+                f"Failed to dump parameters for node '{node_name}': {result.stderr}"
+            )
+
         if output_file:
             return output_file
         else:
@@ -1606,7 +1658,11 @@ class ROS2ClientLibrary(ROS2BaseClient):
 
     @keyword
     def get_transform_at_time(
-        self, target_frame: str, source_frame: str, time_stamp: float, timeout: float = 5.0
+        self,
+        target_frame: str,
+        source_frame: str,
+        time_stamp: float,
+        timeout: float = 5.0,
     ) -> Optional[Dict[str, Any]]:
         """
         Get transform between two frames at a specific time using tf2.
@@ -1627,7 +1683,9 @@ class ROS2ClientLibrary(ROS2BaseClient):
             | Should Not Be None | ${transform} |
         """
         if self.native_client:
-            return self.native_client.get_tf_at_time(target_frame, source_frame, time_stamp, timeout)
+            return self.native_client.get_tf_at_time(
+                target_frame, source_frame, time_stamp, timeout
+            )
         else:
             logger.warn("Native client not available, cannot get transform at time")
             return None
@@ -1656,7 +1714,9 @@ class ROS2ClientLibrary(ROS2BaseClient):
         if self.native_client:
             return self.native_client.can_transform(target_frame, source_frame, timeout)
         else:
-            logger.warn("Native client not available, cannot check transform availability")
+            logger.warn(
+                "Native client not available, cannot check transform availability"
+            )
             return False
 
     # ============================================================================
