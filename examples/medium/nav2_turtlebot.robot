@@ -47,40 +47,6 @@ Test Navigation2 Simple Movement
         Log    Final position is None, skipping tolerance check
     END
 
-# Test Navigation2 Cancel Navigation
-#     [Documentation]    Test Navigation2 cancel navigation
-#     [Tags]    nav2    cancel    navigation
-#     [Setup]    Setup Navigation2 Simulation
-#     [Teardown]    Clean Up Navigation2 Simulation
-    
-#      # Send vehicle to another place
-#     Log    Sending vehicle to position (${GOAL_X}, ${GOAL_Y}, ${GOAL_THETA})...
-#     Async Navigate To Pose Simple    ${GOAL_X}    ${GOAL_Y}    ${GOAL_THETA}    timeout=${NAVIGATION_TIMEOUT}
-
-#     Sleep    1s    
-#     # Call Service    /navigate_to_pose/_action/cancel_goal    action_msgs/srv/CancelGoal   {}
-#     Cancel Navigation
-#     # Check if navigation is active
-#     ${active}=    Is Navigation Active
-#     Should Be Equal    ${active}    ${False}
-    
-#     # Get navigation status
-#     ${status}=    Get Navigation Status
-#     Should Not Be Empty    ${status}
-#     Should Contain    ${status}    navigation_active
-#     Should Contain    ${status}    current_pose
-#     Should Contain    ${status}    goal_pose
-
-#     ${final_pose}=    Get Transform    map    base_link
-#     Should Not Be Empty    ${final_pose}
-
-#     IF    ${final_pose} is not None
-#         ${arrived}=    Is Within Tolerance    ${final_pose}    tolerance=${TOLERANCE}    target_x=${GOAL_X}    target_y=${GOAL_Y}
-#         Should Be Equal    ${arrived}    ${False}
-#     ELSE
-#         Log    Final position is None, skipping tolerance check
-#     END
-
 *** Keywords ***
 Setup Navigation2 Simulation
     [Documentation]    Setup Navigation2 simulation
