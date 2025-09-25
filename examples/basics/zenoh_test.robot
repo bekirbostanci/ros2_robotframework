@@ -1,15 +1,11 @@
 *** Settings ***
-Documentation    Simple Navigation2 test: launch simulator, wait 5s, send vehicle to another place
+Documentation    Test Zenoh session with talker node
 Library          ros2_client.ROS2ClientLibrary
-Library          nav2_client.Nav2ClientLibrary
-Library          Collections
-Library          OperatingSystem
-Library          Process     
 
 *** Test Cases *** 
 Test Zenoh Session
-    [Documentation]    Test Zenoh session
-    [Tags]    zenoh    session
+    [Documentation]    Test Zenoh Session
+    [Tags]    zenoh    session    talker
     [Teardown]    Destroy Zenoh Session
     Create Zenoh Session
 
@@ -25,8 +21,8 @@ Test Zenoh Session
     Destroy Zenoh Session
 
 Test List Topics
-    [Documentation]    Test Zenoh session with talker node
-    [Tags]    zenoh    session
+    [Documentation]    Test List Topics
+    [Tags]    zenoh    list    topics
     [Teardown]    Destroy Zenoh Session
     Create Zenoh Session
 
