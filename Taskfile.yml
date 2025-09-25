@@ -54,3 +54,58 @@ tasks:
       - "rm -rf *.egg-info/"
       - "find . -type d -name __pycache__ -exec rm -rf {} +"
       - "find . -type f -name '*.pyc' -delete"
+
+  # Documentation tasks
+  docs-install:
+    desc: "Install documentation dependencies"
+    cmds:
+      - "{{.PIP}} install -r docs/requirements.txt"
+
+  docs-build:
+    desc: "Build documentation"
+    cmds:
+      - "cd docs && make html"
+      - "echo 'Documentation built in docs/_build/html/'"
+
+  docs-serve:
+    desc: "Serve documentation locally"
+    cmds:
+      - "cd docs && make serve"
+      - "echo 'Documentation available at http://localhost:8000'"
+
+  docs-clean:
+    desc: "Clean documentation build artifacts"
+    cmds:
+      - "cd docs && make clean"
+      - "rm -rf docs/_build/"
+
+  # docs-deploy removed - using Read the Docs for deployment
+
+  # Combined documentation workflow
+  docs:
+    desc: "Full documentation workflow (install, build, serve)"
+    cmds:
+      - task: docs-install
+      - task: docs-build
+      - task: docs-serve
+
+  # Development workflow
+  dev:
+    desc: "Full development workflow (format, lint, type-check, build)"
+    cmds:
+      - task: format
+      - task: check
+      - task: lint
+      - task: type-check
+      - task: build
+
+  # Complete workflow
+  all:
+    desc: "Complete workflow (format, lint, type-check, build, docs)"
+    cmds:
+      - task: format
+      - task: check
+      - task: lint
+      - task: type-check
+      - task: build
+      - task: docs-build
