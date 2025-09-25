@@ -20,6 +20,33 @@ ${TEST_TIMEOUT}        5.0
 ${TEST_CHECK_INTERVAL}    0.1
 
 *** Test Cases ***
+Test Native Topic Operations
+    [Documentation]    Test that native topic operations work correctly
+    
+    # Test topic discovery
+    ${topics}=    List Topics
+    Log    Found topics: ${topics}
+    Should Not Be Empty    ${topics}
+    
+    # Test topic existence check
+    ${exists}=    Topic Exists    /rosout
+    Should Be True    ${exists}
+    
+    # Test topic info
+    ${info}=    Get Topic Info    /rosout
+    Log    Topic info: ${info}
+    Should Not Be Empty    ${info}
+    
+    # Test topic type
+    ${type}=    Get Topic Type    /rosout
+    Log    Topic type: ${type}
+    Should Not Be Empty    ${type}
+    
+    # Test find topics by type
+    ${string_topics}=    Find Topics By Type    rcl_interfaces/msg/Log
+    Log    String topics: ${string_topics}
+    
+
 Test Native Client Initialization
     [Documentation]    Test that the native client can be initialized and provides correct info
     [Tags]    initialization

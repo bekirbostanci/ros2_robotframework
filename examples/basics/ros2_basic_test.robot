@@ -169,7 +169,7 @@ Test ROS2 Error Handling For Non-Existent Resources
     Should Not Be True    ${exists}
     
     # Test non-existent service
-    ${exists}=    Service Exists    /non_existent_service    timeout=2.0
+    ${exists}=    Service Available    /non_existent_service    timeout=2.0
     Should Not Be True    ${exists}
     
     # Test non-existent node

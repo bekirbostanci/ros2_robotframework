@@ -18,6 +18,9 @@ Test PyRobo Simulation Send Command
     ${result}=    Send Action Goal    /execute_action    pyrobosim_msgs/action/ExecuteTaskAction    {"action": {"robot": "robot", "type": "navigate", "source_location": "kitchen", "target_location": "desk"}, "realtime_factor": 1.0}  timeout=15.0
     Log    Action result: ${result}
     Should Be True    ${result}[success]    Action should be sent successfully
+
+    ${topics}=    List Topics
+    Log    Topics: ${topics}
     Sleep    1s
 
 Test PyRobo Action Navigation
