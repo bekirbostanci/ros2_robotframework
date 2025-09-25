@@ -86,8 +86,22 @@ where = ["src"]
 [tool.setuptools.package-data]
 "*" = ["*.py", "*.robot", "*.md", "*.txt", "*.json", "*.yaml", "*.yml"]
 
+# Exclude documentation and development directories from the package
 [tool.setuptools.exclude-package-data]
-"*" = ["__pycache__", "*.pyc", "*.pyo", "*.pyd", ".git*", "*.egg-info"]
+"*" = [
+    "__pycache__", "*.pyc", "*.pyo", "*.pyd", ".git*", "*.egg-info",
+    "docs/*", "docs/**/*",  # Exclude entire docs directory
+    "examples/*", "examples/**/*",  # Exclude examples directory
+    "tests/*", "tests/**/*",  # Exclude tests directory
+    "*.rst", "*.rst.*",  # Exclude reStructuredText files
+    "Makefile", "build.sh", "deploy.sh",  # Exclude build scripts
+    "requirements.txt", "requirements*.txt",  # Exclude requirements files
+    ".github/*", ".github/**/*",  # Exclude GitHub workflows
+    "venv/*", "venv/**/*",  # Exclude virtual environment
+    "dist/*", "dist/**/*",  # Exclude distribution files
+    "build/*", "build/**/*",  # Exclude build files
+    "*.egg-info/*", "*.egg-info/**/*",  # Exclude egg-info
+]
 
 # Entry points for Robot Framework
 [project.entry-points."robotframework_libraries"]
