@@ -576,7 +576,7 @@ class ROS2ClientLibrary(ROS2BaseClient):
         return self.cli_client.list_services(timeout)
 
     @keyword
-    def get_service_info_cli(
+    def get_service_info(
         self, service_name: str, timeout: Optional[float] = None
     ) -> Dict[str, Any]:
         """
@@ -592,7 +592,7 @@ class ROS2ClientLibrary(ROS2BaseClient):
             Dictionary containing service information (type, nodes)
 
         Example:
-            | ${info}= | Get Service Info CLI | /add_two_ints |
+            | ${info}= | Get Service Info | /add_two_ints |
             | Log | Service type: ${info['type']} |
         """
         return self.cli_client.get_service_info(service_name, timeout)
@@ -708,6 +708,30 @@ class ROS2ClientLibrary(ROS2BaseClient):
             | Should Be Equal | ${result['sum']} | 8 |
         """
         return self.native_client.call_service(client_id, request_data, timeout)
+
+    @keyword
+    def call_service_cli(
+        self,
+        service_name: str,
+        service_type: str,
+        request_data: Any = None,
+        timeout: float = 10.0,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Call a service using a CLI service client.
+
+        Args:
+            service_name: Name of the service
+            service_type: Type of the service
+            request_data: Request data to send to the service
+            timeout: Timeout for the service call
+
+        Returns:
+            Service response data or None if failed
+        """
+        return self.cli_client.call_service(
+            service_name, service_type, request_data, timeout
+        )
 
     @keyword
     def service_available(self, client_id: str, timeout: float = 1.0) -> bool:

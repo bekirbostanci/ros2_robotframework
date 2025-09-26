@@ -41,6 +41,34 @@ class ROS2CLIClient(ROS2CLIUtils):
         ]
 
     @keyword
+    def call_service(
+        self,
+        service_name: str,
+        service_type: str,
+        request_data: Any = None,
+        timeout: float = 10.0,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Call a service using a CLI service client.
+
+        Args:
+            service_name: Name of the service
+            service_type: Type of the service
+            request_data: Request data to send (can be dict, simple value, or None)
+            timeout: Timeout in seconds for the service call
+
+        Returns:
+            Service response data or None if call failed
+
+        Example:
+            | ${response}= | Call Service | /reset | std_srvs/srv/Empty |
+            | Should Not Be None | ${response} |
+        """
+        command = ["service", "call", service_name, service_type, request_data]
+        result = self._run_ros2_command(command, timeout=timeout)
+        return result.stdout.strip()
+
+    @keyword
     def send_action_goal(
         self,
         action_name: str,

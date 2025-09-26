@@ -72,11 +72,12 @@ Setup Navigation2 Simulation
 
     Sleep    5s
 
-    # Use CLI service call directly (to avoid JSON conversion issues)
-    ${result}=    Run Process    ros2    service    call    /set_initial_pose    nav2_msgs/srv/SetInitialPose    {pose: {header: {frame_id: 'map'}, pose: {pose: {position: {x: -2.0, y: -0.5, z: 0.0}, orientation: {x: 0.0, y: 0.0, z: 0.0, w: 1.0}}}}}
-    Should Be Equal As Integers    ${result.rc}    0    Service call should succeed
-    Log    Service call output: ${result.stdout}
-    Log    Service call stderr: ${result.stderr}
+    ${services}=    List Services
+    Should Contain    ${services}    /set_initial_pose
+
+    ${result}=    Call Service CLI    /set_initial_pose    nav2_msgs/srv/SetInitialPose    {pose: {header: {frame_id: 'map'}, pose: {pose: {position: {x: -2.0, y: -0.5, z: 0.0}, orientation: {x: 0.0, y: 0.0, z: 0.0, w: 1.0}}}}}
+    Log    Service call result: ${result}
+    Should Contain    ${result}    response
 
     Sleep    2s
 
