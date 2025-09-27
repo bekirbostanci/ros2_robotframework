@@ -334,7 +334,7 @@ class ROS2NativeClient(ROS2BaseClient):
     # ============================================================================
 
     # --- Topic Discovery Operations ---
-    @keyword
+
     def list_topics(self, timeout: Optional[float] = None) -> List[str]:
         """
         List all available ROS2 topics using native operations.
@@ -362,7 +362,6 @@ class ROS2NativeClient(ROS2BaseClient):
             logger.error(f"Failed to list topics: {e}")
             return []
 
-    @keyword
     def get_topic_info(
         self, topic_name: str, timeout: Optional[float] = None
     ) -> Dict[str, Any]:
@@ -426,7 +425,6 @@ class ROS2NativeClient(ROS2BaseClient):
                 "subscriber_count": 0,
             }
 
-    @keyword
     def get_topic_type(self, topic_name: str, timeout: Optional[float] = None) -> str:
         """
         Get the message type for a topic using native operations.
@@ -457,7 +455,6 @@ class ROS2NativeClient(ROS2BaseClient):
             logger.error(f"Failed to get topic type for '{topic_name}': {e}")
             return "unknown"
 
-    @keyword
     def find_topics_by_type(
         self, message_type: str, timeout: Optional[float] = None
     ) -> List[str]:
@@ -494,7 +491,6 @@ class ROS2NativeClient(ROS2BaseClient):
             logger.error(f"Failed to find topics by type '{message_type}': {e}")
             return []
 
-    @keyword
     def topic_exists(self, topic_name: str, timeout: Optional[float] = None) -> bool:
         """
         Check if a topic exists using native operations.
@@ -524,7 +520,6 @@ class ROS2NativeClient(ROS2BaseClient):
             logger.error(f"Error checking if topic '{topic_name}' exists: {e}")
             return False
 
-    @keyword
     def wait_for_topic(
         self, topic_name: str, timeout: float = 30.0, check_interval: float = 1.0
     ) -> bool:
@@ -559,7 +554,7 @@ class ROS2NativeClient(ROS2BaseClient):
         return False
 
     # --- Topic Monitoring Operations ---
-    @keyword
+
     def echo_topic(
         self, topic_name: str, count: int = 1, timeout: Optional[float] = None
     ) -> List[str]:
@@ -609,7 +604,6 @@ class ROS2NativeClient(ROS2BaseClient):
             logger.error(f"Failed to echo topic '{topic_name}': {e}")
             return []
 
-    @keyword
     def get_topic_frequency(self, topic_name: str, timeout: float = 10.0) -> float:
         """
         Get the message frequency for a topic using native operations.
@@ -666,7 +660,6 @@ class ROS2NativeClient(ROS2BaseClient):
             logger.error(f"Failed to get topic frequency for '{topic_name}': {e}")
             return 0.0
 
-    @keyword
     def get_topic_bandwidth(self, topic_name: str, timeout: float = 10.0) -> float:
         """
         Get the bandwidth usage for a topic using native operations.
@@ -724,7 +717,6 @@ class ROS2NativeClient(ROS2BaseClient):
             logger.error(f"Failed to get topic bandwidth for '{topic_name}': {e}")
             return 0.0
 
-    @keyword
     def get_topic_delay(self, topic_name: str, timeout: float = 10.0) -> float:
         """
         Get the message delay for a topic using native operations.
@@ -780,7 +772,6 @@ class ROS2NativeClient(ROS2BaseClient):
             logger.error(f"Failed to get topic delay for '{topic_name}': {e}")
             return 0.0
 
-    @keyword
     def create_publisher(
         self,
         topic_name: str,
@@ -828,7 +819,6 @@ class ROS2NativeClient(ROS2BaseClient):
         )
         return publisher_id
 
-    @keyword
     def publish_message(self, publisher_id: str, data: Any) -> bool:
         """
         Publish a message using a native publisher.
@@ -863,7 +853,6 @@ class ROS2NativeClient(ROS2BaseClient):
             logger.error(f"Failed to publish native message: {e}")
             return False
 
-    @keyword
     def create_subscriber(
         self,
         topic_name: str,
@@ -931,7 +920,6 @@ class ROS2NativeClient(ROS2BaseClient):
         )
         return subscriber_id
 
-    @keyword
     def get_latest_message(self, topic_name: str) -> Optional[Dict[str, Any]]:
         """
         Get the latest message from a subscribed topic.
@@ -956,7 +944,6 @@ class ROS2NativeClient(ROS2BaseClient):
 
         return self._message_buffer[topic_name][-1]
 
-    @keyword
     def get_all_messages(self, topic_name: str) -> List[Dict[str, Any]]:
         """
         Get all buffered messages from a subscribed topic.
@@ -975,7 +962,6 @@ class ROS2NativeClient(ROS2BaseClient):
         """
         return self._message_buffer.get(topic_name, [])
 
-    @keyword
     def clear_message_buffer(self, topic_name: str) -> bool:
         """
         Clear the message buffer for a topic.
@@ -995,7 +981,6 @@ class ROS2NativeClient(ROS2BaseClient):
             return True
         return False
 
-    @keyword
     def wait_for_message(
         self, topic_name: str, timeout: float = 10.0, check_interval: float = 0.1
     ) -> Optional[Dict[str, Any]]:
@@ -1034,7 +1019,6 @@ class ROS2NativeClient(ROS2BaseClient):
     # NATIVE SERVICE OPERATIONS
     # ============================================================================
 
-    @keyword
     def create_service_client(
         self,
         service_name: str,
@@ -1074,7 +1058,6 @@ class ROS2NativeClient(ROS2BaseClient):
         )
         return client_id
 
-    @keyword
     def call_service(
         self,
         client_id: str,
@@ -1138,7 +1121,6 @@ class ROS2NativeClient(ROS2BaseClient):
             logger.error(f"Failed to call service '{client_id}': {e}")
             return None
 
-    @keyword
     def service_available(self, client_id: str, timeout: float = 1.0) -> bool:
         """
         Check if a service is available.
@@ -1171,7 +1153,6 @@ class ROS2NativeClient(ROS2BaseClient):
             logger.error(f"Error checking service availability for '{client_id}': {e}")
             return False
 
-    @keyword
     def create_service_server(
         self,
         service_name: str,
@@ -1227,7 +1208,6 @@ class ROS2NativeClient(ROS2BaseClient):
         )
         return server_id
 
-    @keyword
     def get_service_info(self) -> Dict[str, Any]:
         """
         Get information about created service clients and servers.
@@ -1261,7 +1241,6 @@ class ROS2NativeClient(ROS2BaseClient):
     # NATIVE PARAMETER OPERATIONS
     # ============================================================================
 
-    @keyword
     def get_parameter(self, parameter_name: str, default_value: Any = None) -> Any:
         """
         Get a parameter value using native ROS2 parameter client.
@@ -1293,7 +1272,6 @@ class ROS2NativeClient(ROS2BaseClient):
                 logger.error(f"Failed to get native parameter '{parameter_name}': {e}")
                 raise
 
-    @keyword
     def set_parameter(self, parameter_name: str, value: Any) -> bool:
         """
         Set a parameter value using native ROS2 parameter client.
@@ -1350,7 +1328,6 @@ class ROS2NativeClient(ROS2BaseClient):
             logger.error(f"Failed to set native parameter '{parameter_name}': {e}")
             return False
 
-    @keyword
     def declare_parameter(self, parameter_name: str, default_value: Any) -> bool:
         """
         Declare a parameter with a default value.
@@ -1378,7 +1355,6 @@ class ROS2NativeClient(ROS2BaseClient):
             logger.error(f"Failed to declare native parameter '{parameter_name}': {e}")
             return False
 
-    @keyword
     def list_parameters(self) -> List[str]:
         """
         List all parameters for the native node.
@@ -1400,7 +1376,6 @@ class ROS2NativeClient(ROS2BaseClient):
             logger.error(f"Failed to list native parameters: {e}")
             return []
 
-    @keyword
     def parameter_exists(self, parameter_name: str) -> bool:
         """
         Check if a parameter exists on the native node.
@@ -1427,7 +1402,6 @@ class ROS2NativeClient(ROS2BaseClient):
             )
             return False
 
-    @keyword
     def get_all_parameters(self) -> Dict[str, Any]:
         """
         Get all parameters and their values for the native node.
@@ -1463,7 +1437,6 @@ class ROS2NativeClient(ROS2BaseClient):
     # TF2 OPERATIONS
     # ============================================================================
 
-    @keyword
     def get_tf(
         self, target_frame: str, source_frame: str, timeout: float = 5.0
     ) -> Optional[Dict[str, Any]]:
@@ -1538,7 +1511,6 @@ class ROS2NativeClient(ROS2BaseClient):
             )
             return None
 
-    @keyword
     def get_tf_at_time(
         self,
         target_frame: str,
@@ -1619,7 +1591,6 @@ class ROS2NativeClient(ROS2BaseClient):
             )
             return None
 
-    @keyword
     def can_transform(
         self, target_frame: str, source_frame: str, timeout: float = 1.0
     ) -> bool:
@@ -1667,7 +1638,6 @@ class ROS2NativeClient(ROS2BaseClient):
     # UTILITY METHODS
     # ============================================================================
 
-    @keyword
     def cleanup(self):
         """Clean up resources."""
         if self._initialized and self.node:
@@ -1687,7 +1657,6 @@ class ROS2NativeClient(ROS2BaseClient):
             self._initialized = False
             logger.info("Native ROS2 client cleaned up")
 
-    @keyword
     def get_client_info(self) -> Dict[str, Any]:
         """Get information about the native client."""
         self._ensure_initialized()
