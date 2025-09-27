@@ -25,7 +25,6 @@ class Nav2CLIClient(Nav2BaseClient):
     # NAVIGATION2 SERVICE OPERATIONS
     # ============================================================================
 
-    @keyword
     def navigate_to_pose(
         self,
         x: float,
@@ -115,7 +114,6 @@ class Nav2CLIClient(Nav2BaseClient):
             self._navigation_active = False
             return NavigationResult(success=False, message=f"Navigation error: {e}")
 
-    @keyword
     def cancel_navigation(self, timeout: Optional[float] = None) -> bool:
         """
         Cancel the current navigation operation.
@@ -156,7 +154,6 @@ class Nav2CLIClient(Nav2BaseClient):
             logger.error(f"Error cancelling navigation: {e}")
             return False
 
-    @keyword
     def is_navigation_active(self) -> bool:
         """
         Check if navigation is currently active.
@@ -174,7 +171,6 @@ class Nav2CLIClient(Nav2BaseClient):
     # PATH PLANNING OPERATIONS
     # ============================================================================
 
-    @keyword
     def compute_path(
         self,
         start_x: float,
@@ -267,7 +263,6 @@ class Nav2CLIClient(Nav2BaseClient):
     # NAVIGATION2 STATUS OPERATIONS
     # ============================================================================
 
-    @keyword
     def wait_for_nav2_ready(
         self, timeout: float = 60.0, check_interval: float = 2.0
     ) -> bool:
@@ -328,7 +323,6 @@ class Nav2CLIClient(Nav2BaseClient):
         logger.warn(f"Navigation2 did not become ready within {timeout}s")
         return False
 
-    @keyword
     def get_navigation_status(self, timeout: Optional[float] = None) -> Dict[str, Any]:
         """
         Get the current navigation status.

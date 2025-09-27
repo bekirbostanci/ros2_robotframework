@@ -285,7 +285,6 @@ class Nav2NativeClient(Nav2BaseClient):
     # NATIVE NAVIGATION OPERATIONS
     # ============================================================================
 
-    @keyword
     def navigate_to_pose_native(
         self,
         x: float,
@@ -439,7 +438,6 @@ class Nav2NativeClient(Nav2BaseClient):
             self._navigation_active = False
             return False
 
-    @keyword
     def navigate_through_poses(
         self,
         poses: List[Dict[str, float]],
@@ -549,7 +547,6 @@ class Nav2NativeClient(Nav2BaseClient):
     # NATIVE POSE AND LOCALIZATION OPERATIONS
     # ============================================================================
 
-    @keyword
     def get_current_pose_native(
         self, timeout: Optional[float] = None
     ) -> Optional[Pose]:
@@ -605,7 +602,6 @@ class Nav2NativeClient(Nav2BaseClient):
             logger.error(f"Error getting current pose (native): {e}")
             return None
 
-    @keyword
     def set_initial_pose_native(
         self,
         x: float,
@@ -647,7 +643,6 @@ class Nav2NativeClient(Nav2BaseClient):
             logger.error(f"Error setting initial pose (native): {e}")
             return False
 
-    @keyword
     def wait_for_localization_native(
         self, timeout: float = 30.0, check_interval: float = 1.0
     ) -> bool:
@@ -712,7 +707,6 @@ class Nav2NativeClient(Nav2BaseClient):
     # NATIVE COSTMAP OPERATIONS
     # ============================================================================
 
-    @keyword
     def get_costmap_info_native(
         self, costmap_type: str = "global", timeout: Optional[float] = None
     ) -> Dict[str, Any]:
@@ -748,7 +742,6 @@ class Nav2NativeClient(Nav2BaseClient):
             logger.error(f"Error getting costmap info (native): {e}")
             return {}
 
-    @keyword
     def clear_costmap_native(
         self, costmap_type: str = "global", timeout: Optional[float] = None
     ) -> bool:
@@ -810,7 +803,6 @@ class Nav2NativeClient(Nav2BaseClient):
     # NATIVE STATUS OPERATIONS
     # ============================================================================
 
-    @keyword
     def wait_for_nav2_ready(
         self, timeout: float = 20.0, check_interval: float = 2.0
     ) -> bool:
@@ -866,7 +858,6 @@ class Nav2NativeClient(Nav2BaseClient):
         logger.warn(f"Navigation2 did not become ready (native) within {timeout}s")
         return False
 
-    @keyword
     def get_navigation_status_native(
         self, timeout: Optional[float] = None
     ) -> Dict[str, Any]:
@@ -940,7 +931,6 @@ class Nav2NativeClient(Nav2BaseClient):
     # UTILITY METHODS
     # ============================================================================
 
-    @keyword
     def cleanup(self):
         """Clean up resources."""
         if self._initialized and self.node:
@@ -976,7 +966,6 @@ class Nav2NativeClient(Nav2BaseClient):
             self._initialized = False
             logger.info("Native Navigation2 client cleaned up")
 
-    @keyword
     def get_client_info(self) -> Dict[str, Any]:
         """Get information about the native client."""
         return {
