@@ -71,6 +71,7 @@ class ROS2ClientLibrary(ROS2BaseClient):
             "Available operations: topics, services, actions, nodes, parameters, launch, run, transforms"
         )
 
+    @keyword
     def ros_doctor(self, timeout: float = 5.0) -> str:
         """
         Run the ROS2 doctor tool.
