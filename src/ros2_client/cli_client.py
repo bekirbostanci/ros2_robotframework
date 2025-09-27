@@ -882,6 +882,59 @@ class ROS2CLIClient(ROS2CLIUtils):
             logger.error(f"Failed to shutdown process {process_name}: {e}")
             return False
 
+    def async_send_action_goal(
+        self,
+        action_name: str,
+        action_type: str,
+        goal_data: str,
+        timeout: Optional[float] = None,
+    ) -> None:
+        """
+        Send a goal to a ROS2 action server asynchronously (fire and forget).
+
+        This function starts the action goal but doesn't wait for completion.
+        It returns immediately after sending the goal.
+
+        Args:
+            action_name: Name of the action (e.g., '/execute_action')
+            action_type: Type of the action (e.g., 'pyrobosim_msgs/action/ExecuteTaskAction')
+            goal_data: Goal data as a JSON string
+            timeout: Override default timeout for this operation (not used in fire-and-forget mode)
+
+        Returns:
+            None
+
+        Example:
+            | Async Send Action Goal | /execute_action | pyrobosim_msgs/action/ExecuteTaskAction | '{"action": {"robot": "robot0", "type": "navigate", "source_location": "kitchen", "target_location": "desk"}, "realtime_factor": 1.0}' |
+        """
+        import threading
+
+        def _send_goal_background():
+            """Background thread function to send the action goal."""
+            try:
+                # Use the existing _run_ros2_command method for consistency
+                command = ["action", "send_goal", action_name, action_type, goal_data]
+
+                # Run the command with a very short timeout to just initiate the goal
+                # This will send the goal but not wait for completion
+                result = self._run_ros2_command(command, timeout=1.0)
+
+                if result.returncode == 0:
+                    logger.info(
+                        f"Successfully started action goal for '{action_name}' (fire and forget)"
+                    )
+                else:
+                    logger.warning(
+                        f"Action goal may have failed to start for '{action_name}': {result.stderr}"
+                    )
+
+            except Exception as e:
+                logger.error(f"Failed to start action goal for '{action_name}': {e}")
+
+        # Start the background thread
+        thread = threading.Thread(target=_send_goal_background, daemon=True)
+        thread.start()
+
     def has_running_nodes(self, timeout: float) -> bool:
         """
         Check if there are any nodes running.

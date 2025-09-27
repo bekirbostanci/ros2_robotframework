@@ -530,37 +530,10 @@ class ROS2ClientLibrary(ROS2BaseClient):
         Example:
             | Async Send Action Goal | /execute_action | pyrobosim_msgs/action/ExecuteTaskAction | '{"action": {"robot": "robot0", "type": "navigate", "source_location": "kitchen", "target_location": "desk"}, "realtime_factor": 1.0}' |
         """
-        # Fire and forget - start the action goal in background without waiting
-        import threading
-
-        def _send_goal_background():
-            try:
-                # Use a very short timeout to just send the goal and return
-                command = ["action", "send_goal", action_name, action_type, goal_data]
-
-                # Run the command with a very short timeout to just initiate the goal
-                # This will send the goal but not wait for completion
-                import subprocess
-
-                process = subprocess.Popen(
-                    ["ros2"] + command,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    text=True,
-                )
-
-                # Don't wait for the process to complete - just start it and return
-                # The action will continue running in the background
-                logger.info(
-                    f"Started action goal for '{action_name}' (fire and forget)"
-                )
-
-            except Exception as e:
-                logger.error(f"Failed to start action goal for '{action_name}': {e}")
-
-        # Start the background thread
-        thread = threading.Thread(target=_send_goal_background, daemon=True)
-        thread.start()
+        # Delegate to CLI client for async action goal implementation
+        self.cli_client.async_send_action_goal(
+            action_name, action_type, goal_data, timeout
+        )
 
     # ============================================================================
     # SERVICE OPERATIONS
