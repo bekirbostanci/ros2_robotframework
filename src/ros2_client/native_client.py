@@ -350,12 +350,12 @@ class ROS2NativeClient(ROS2BaseClient):
             | Should Contain | ${topics} | /chatter |
         """
         self._ensure_initialized()
-        
+
         try:
             # Get topic names and types from the node
             topic_names_and_types = self.node.get_topic_names_and_types()
             topic_names = [name for name, _ in topic_names_and_types]
-            
+
             logger.info(f"Found {len(topic_names)} topics: {topic_names}")
             return topic_names
         except Exception as e:
@@ -363,7 +363,9 @@ class ROS2NativeClient(ROS2BaseClient):
             return []
 
     @keyword
-    def get_topic_info(self, topic_name: str, timeout: Optional[float] = None) -> Dict[str, Any]:
+    def get_topic_info(
+        self, topic_name: str, timeout: Optional[float] = None
+    ) -> Dict[str, Any]:
         """
         Get detailed information about a topic using native operations.
 
@@ -379,28 +381,28 @@ class ROS2NativeClient(ROS2BaseClient):
             | Log | Topic type: ${info['type']} |
         """
         self._ensure_initialized()
-        
+
         try:
             # Get topic names and types
             topic_names_and_types = self.node.get_topic_names_and_types()
-            
+
             # Find the topic type
             topic_type = None
             for name, types in topic_names_and_types:
                 if name == topic_name:
                     topic_type = types[0] if types else "unknown"
                     break
-            
+
             if topic_type is None:
                 raise ValueError(f"Topic '{topic_name}' not found")
-            
+
             # Get publisher and subscriber information
             publishers = []
             subscribers = []
-            
+
             # Get node names and their topics
             node_names_and_namespaces = self.node.get_node_names_and_namespaces()
-            
+
             info = {
                 "name": topic_name,
                 "type": topic_type,
@@ -409,13 +411,20 @@ class ROS2NativeClient(ROS2BaseClient):
                 "publisher_count": len(publishers),
                 "subscriber_count": len(subscribers),
             }
-            
+
             logger.info(f"Topic info for '{topic_name}': {info}")
             return info
-            
+
         except Exception as e:
             logger.error(f"Failed to get topic info for '{topic_name}': {e}")
-            return {"name": topic_name, "type": "unknown", "publishers": [], "subscribers": [], "publisher_count": 0, "subscriber_count": 0}
+            return {
+                "name": topic_name,
+                "type": "unknown",
+                "publishers": [],
+                "subscribers": [],
+                "publisher_count": 0,
+                "subscriber_count": 0,
+            }
 
     @keyword
     def get_topic_type(self, topic_name: str, timeout: Optional[float] = None) -> str:
@@ -434,22 +443,24 @@ class ROS2NativeClient(ROS2BaseClient):
             | Should Be Equal | ${type} | std_msgs/msg/String |
         """
         self._ensure_initialized()
-        
+
         try:
             topic_names_and_types = self.node.get_topic_names_and_types()
-            
+
             for name, types in topic_names_and_types:
                 if name == topic_name:
                     return types[0] if types else "unknown"
-            
+
             raise ValueError(f"Topic '{topic_name}' not found")
-            
+
         except Exception as e:
             logger.error(f"Failed to get topic type for '{topic_name}': {e}")
             return "unknown"
 
     @keyword
-    def find_topics_by_type(self, message_type: str, timeout: Optional[float] = None) -> List[str]:
+    def find_topics_by_type(
+        self, message_type: str, timeout: Optional[float] = None
+    ) -> List[str]:
         """
         Find topics that use a specific message type using native operations.
 
@@ -465,18 +476,20 @@ class ROS2NativeClient(ROS2BaseClient):
             | Should Contain | ${string_topics} | /chatter |
         """
         self._ensure_initialized()
-        
+
         try:
             topic_names_and_types = self.node.get_topic_names_and_types()
             matching_topics = []
-            
+
             for name, types in topic_names_and_types:
                 if message_type in types:
                     matching_topics.append(name)
-            
-            logger.info(f"Found {len(matching_topics)} topics with type '{message_type}': {matching_topics}")
+
+            logger.info(
+                f"Found {len(matching_topics)} topics with type '{message_type}': {matching_topics}"
+            )
             return matching_topics
-            
+
         except Exception as e:
             logger.error(f"Failed to find topics by type '{message_type}': {e}")
             return []
@@ -498,21 +511,23 @@ class ROS2NativeClient(ROS2BaseClient):
             | Should Be True | ${exists} |
         """
         self._ensure_initialized()
-        
+
         try:
             topic_names_and_types = self.node.get_topic_names_and_types()
             topic_names = [name for name, _ in topic_names_and_types]
             exists = topic_name in topic_names
-            
+
             logger.info(f"Topic '{topic_name}' exists: {exists}")
             return exists
-            
+
         except Exception as e:
             logger.error(f"Error checking if topic '{topic_name}' exists: {e}")
             return False
 
     @keyword
-    def wait_for_topic(self, topic_name: str, timeout: float = 30.0, check_interval: float = 1.0) -> bool:
+    def wait_for_topic(
+        self, topic_name: str, timeout: float = 30.0, check_interval: float = 1.0
+    ) -> bool:
         """
         Wait for a topic to become available using native operations.
 
@@ -529,21 +544,25 @@ class ROS2NativeClient(ROS2BaseClient):
             | Should Be True | ${available} |
         """
         self._ensure_initialized()
-        
+
         start_time = time.time()
-        
+
         while time.time() - start_time < timeout:
             if self.topic_exists(topic_name):
-                logger.info(f"Topic '{topic_name}' became available after {time.time() - start_time:.2f}s")
+                logger.info(
+                    f"Topic '{topic_name}' became available after {time.time() - start_time:.2f}s"
+                )
                 return True
             time.sleep(check_interval)
-        
+
         logger.warn(f"Topic '{topic_name}' did not become available within {timeout}s")
         return False
 
     # --- Topic Monitoring Operations ---
     @keyword
-    def echo_topic(self, topic_name: str, count: int = 1, timeout: Optional[float] = None) -> List[str]:
+    def echo_topic(
+        self, topic_name: str, count: int = 1, timeout: Optional[float] = None
+    ) -> List[str]:
         """
         Echo messages from a topic using native operations.
 
@@ -560,30 +579,32 @@ class ROS2NativeClient(ROS2BaseClient):
             | Length Should Be | ${messages} | 5 |
         """
         self._ensure_initialized()
-        
+
         try:
             # Create a temporary subscriber for this topic
             topic_type = self.get_topic_type(topic_name)
             if topic_type == "unknown":
                 raise ValueError(f"Could not determine type for topic '{topic_name}'")
-            
+
             # Create subscriber
             subscriber_id = self.create_subscriber(topic_name, topic_type)
-            
+
             messages = []
             start_time = time.time()
             timeout_value = timeout or self.timeout
-            
+
             # Wait for messages
             while len(messages) < count and (time.time() - start_time) < timeout_value:
                 message = self.get_latest_message(topic_name)
                 if message and message not in messages:
-                    messages.append(str(message.get('data', message)))
+                    messages.append(str(message.get("data", message)))
                 time.sleep(0.1)
-            
-            logger.info(f"Echoed {len(messages)} messages from '{topic_name}': {messages}")
+
+            logger.info(
+                f"Echoed {len(messages)} messages from '{topic_name}': {messages}"
+            )
             return messages
-            
+
         except Exception as e:
             logger.error(f"Failed to echo topic '{topic_name}': {e}")
             return []
@@ -605,40 +626,42 @@ class ROS2NativeClient(ROS2BaseClient):
             | Should Be True | ${freq} > 0 |
         """
         self._ensure_initialized()
-        
+
         try:
             # Create a temporary subscriber
             topic_type = self.get_topic_type(topic_name)
             if topic_type == "unknown":
                 return 0.0
-            
+
             subscriber_id = self.create_subscriber(topic_name, topic_type)
-            
+
             # Clear any existing messages
             self.clear_message_buffer(topic_name)
-            
+
             # Wait for messages and calculate frequency
             start_time = time.time()
             message_times = []
-            
+
             while (time.time() - start_time) < timeout:
                 message = self.get_latest_message(topic_name)
                 if message:
                     current_time = time.time()
-                    if not message_times or current_time - message_times[-1] > 0.1:  # Avoid duplicates
+                    if (
+                        not message_times or current_time - message_times[-1] > 0.1
+                    ):  # Avoid duplicates
                         message_times.append(current_time)
                 time.sleep(0.01)
-            
+
             if len(message_times) < 2:
                 return 0.0
-            
+
             # Calculate frequency
             time_span = message_times[-1] - message_times[0]
             frequency = (len(message_times) - 1) / time_span if time_span > 0 else 0.0
-            
+
             logger.info(f"Topic '{topic_name}' frequency: {frequency:.2f} Hz")
             return frequency
-            
+
         except Exception as e:
             logger.error(f"Failed to get topic frequency for '{topic_name}': {e}")
             return 0.0
@@ -660,43 +683,43 @@ class ROS2NativeClient(ROS2BaseClient):
             | Log | Bandwidth: ${bw} bytes/sec |
         """
         self._ensure_initialized()
-        
+
         try:
             # Create a temporary subscriber
             topic_type = self.get_topic_type(topic_name)
             if topic_type == "unknown":
                 return 0.0
-            
+
             subscriber_id = self.create_subscriber(topic_name, topic_type)
-            
+
             # Clear any existing messages
             self.clear_message_buffer(topic_name)
-            
+
             # Wait for messages and calculate bandwidth
             start_time = time.time()
             total_bytes = 0
             message_count = 0
-            
+
             while (time.time() - start_time) < timeout:
                 message = self.get_latest_message(topic_name)
                 if message:
                     # Estimate message size (this is approximate)
-                    message_str = str(message.get('data', message))
-                    message_bytes = len(message_str.encode('utf-8'))
+                    message_str = str(message.get("data", message))
+                    message_bytes = len(message_str.encode("utf-8"))
                     total_bytes += message_bytes
                     message_count += 1
                 time.sleep(0.01)
-            
+
             if message_count == 0:
                 return 0.0
-            
+
             # Calculate bandwidth
             time_span = time.time() - start_time
             bandwidth = total_bytes / time_span if time_span > 0 else 0.0
-            
+
             logger.info(f"Topic '{topic_name}' bandwidth: {bandwidth:.2f} bytes/sec")
             return bandwidth
-            
+
         except Exception as e:
             logger.error(f"Failed to get topic bandwidth for '{topic_name}': {e}")
             return 0.0
@@ -718,41 +741,41 @@ class ROS2NativeClient(ROS2BaseClient):
             | Should Be True | ${delay} >= 0 |
         """
         self._ensure_initialized()
-        
+
         try:
             # Create a temporary subscriber
             topic_type = self.get_topic_type(topic_name)
             if topic_type == "unknown":
                 return 0.0
-            
+
             subscriber_id = self.create_subscriber(topic_name, topic_type)
-            
+
             # Clear any existing messages
             self.clear_message_buffer(topic_name)
-            
+
             # Wait for messages and calculate delay
             start_time = time.time()
             delays = []
-            
+
             while (time.time() - start_time) < timeout:
                 message = self.get_latest_message(topic_name)
                 if message:
                     # Calculate delay (current time - message timestamp)
                     current_time = time.time()
-                    message_time = message.get('timestamp', current_time)
+                    message_time = message.get("timestamp", current_time)
                     delay = current_time - message_time
                     delays.append(delay)
                 time.sleep(0.01)
-            
+
             if not delays:
                 return 0.0
-            
+
             # Calculate average delay
             avg_delay = sum(delays) / len(delays)
-            
+
             logger.info(f"Topic '{topic_name}' average delay: {avg_delay:.3f} seconds")
             return avg_delay
-            
+
         except Exception as e:
             logger.error(f"Failed to get topic delay for '{topic_name}': {e}")
             return 0.0
