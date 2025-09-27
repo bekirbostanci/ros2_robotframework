@@ -21,11 +21,3 @@ sphinx:
 # Build PDF
 formats:
   - pdf
-
-# Optionally set the version of Python and its requirements
-python:
-  version: 3.12
-  install:
-    - requirements: docs/requirements.txt
-    - method: pip
-      path: .
