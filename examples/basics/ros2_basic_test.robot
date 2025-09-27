@@ -9,6 +9,13 @@ ${TEST_TIMEOUT}    10.0
 ${TEST_MESSAGE}    Hello from new structure!
 
 *** Test Cases ***
+Test ROS2 Doctor
+    [Documentation]    Test ROS2 doctor tool
+    [Tags]    doctor    ros2
+    ${result}=    ROS Doctor    timeout=${TEST_TIMEOUT}
+    Should Not Be Empty    ${result}
+    Should Contain    ${result}    All 4 checks passed
+
 Verify ROS2 Discovery Operations
     [Documentation]    Test basic ROS2 CLI operations
     [Tags]    basic    ros2

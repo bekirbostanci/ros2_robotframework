@@ -71,6 +71,18 @@ class ROS2ClientLibrary(ROS2BaseClient):
             "Available operations: topics, services, actions, nodes, parameters, launch, run, transforms"
         )
 
+    def ros_doctor(self, timeout: float = 5.0) -> str:
+        """
+        Run the ROS2 doctor tool.
+
+        Args:
+            timeout: Timeout for the doctor tool
+
+        Returns:
+            Output of the doctor tool
+        """
+        return self.cli_client.ros_doctor(timeout)
+
     # ============================================================================
     # TOPIC OPERATIONS
     # ============================================================================

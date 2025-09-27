@@ -22,6 +22,13 @@ class ROS2CLIClient(ROS2CLIUtils):
         super().__init__(timeout)
         logger.info("ROS2 CLI client initialized")
 
+    def ros_doctor(self, timeout: float = 5.0):
+        """
+        Run the ROS2 doctor tool.
+        """
+        result = self._run_ros2_command(["doctor"], timeout=timeout)
+        return result.stdout.strip()
+
     # ============================================================================
     # PARAMETER OPERATIONS - REMOVED
     # ============================================================================
@@ -40,7 +47,6 @@ class ROS2CLIClient(ROS2CLIUtils):
             line.strip() for line in result.stdout.strip().split("\n") if line.strip()
         ]
 
-    @keyword
     def call_service(
         self,
         service_name: str,
@@ -68,7 +74,6 @@ class ROS2CLIClient(ROS2CLIUtils):
         result = self._run_ros2_command(command, timeout=timeout)
         return result.stdout.strip()
 
-    @keyword
     def send_action_goal(
         self,
         action_name: str,
@@ -139,7 +144,6 @@ class ROS2CLIClient(ROS2CLIUtils):
                 "goal_data": goal_data,
             }
 
-    @keyword
     def get_action_info(
         self, action_name: str, timeout: Optional[float] = None
     ) -> Dict[str, Any]:
@@ -192,7 +196,6 @@ class ROS2CLIClient(ROS2CLIUtils):
             )
             return {"success": False, "error": str(e), "action_name": action_name}
 
-    @keyword
     def action_exists(self, action_name: str, timeout: Optional[float] = None) -> bool:
         """
         Check if an action exists.
@@ -223,7 +226,6 @@ class ROS2CLIClient(ROS2CLIUtils):
     # LAUNCH OPERATIONS
     # ============================================================================
 
-    @keyword
     def launch_file(
         self,
         launch_file_path: str,
@@ -288,7 +290,6 @@ class ROS2CLIClient(ROS2CLIUtils):
             logger.error(f"Failed to launch file '{launch_file_path}': {e}")
             raise
 
-    @keyword
     def launch_package(
         self,
         package_name: str,
@@ -357,7 +358,6 @@ class ROS2CLIClient(ROS2CLIUtils):
             )
             raise
 
-    @keyword
     def find_launch_files(
         self, package_name: str, timeout: Optional[float] = None
     ) -> List[str]:
@@ -424,7 +424,6 @@ class ROS2CLIClient(ROS2CLIUtils):
             logger.warn(f"Error finding launch files for package '{package_name}': {e}")
             return []
 
-    @keyword
     def wait_for_launch_completion(
         self, process: subprocess.Popen, timeout: float = 30.0
     ) -> bool:
@@ -455,7 +454,6 @@ class ROS2CLIClient(ROS2CLIUtils):
             logger.error(f"Error waiting for launch completion: {e}")
             return False
 
-    @keyword
     def terminate_launch_process(
         self, process: subprocess.Popen, force: bool = False
     ) -> bool:
@@ -516,7 +514,6 @@ class ROS2CLIClient(ROS2CLIUtils):
     # RUN OPERATIONS
     # ============================================================================
 
-    @keyword
     def run_node(
         self,
         package_name: str,
@@ -576,7 +573,6 @@ class ROS2CLIClient(ROS2CLIUtils):
             logger.error(f"Failed to run node '{package_name}/{executable_name}': {e}")
             raise
 
-    @keyword
     def run_node_with_remap(
         self,
         package_name: str,
@@ -649,7 +645,6 @@ class ROS2CLIClient(ROS2CLIUtils):
             )
             raise
 
-    @keyword
     def find_executables(
         self, package_name: str, timeout: Optional[float] = None
     ) -> List[str]:
@@ -692,7 +687,6 @@ class ROS2CLIClient(ROS2CLIUtils):
         )
         return executables
 
-    @keyword
     def wait_for_node_completion(
         self, process: subprocess.Popen, timeout: float = 30.0
     ) -> bool:
@@ -723,7 +717,6 @@ class ROS2CLIClient(ROS2CLIUtils):
             logger.error(f"Error waiting for node completion: {e}")
             return False
 
-    @keyword
     def terminate_node_process(
         self, process: subprocess.Popen, force: bool = False
     ) -> bool:
@@ -763,7 +756,6 @@ class ROS2CLIClient(ROS2CLIUtils):
             logger.error(f"Failed to terminate node process: {e}")
             return False
 
-    @keyword
     def get_process_output(
         self, process: subprocess.Popen, timeout: float = 1.0
     ) -> Dict[str, str]:
@@ -793,7 +785,6 @@ class ROS2CLIClient(ROS2CLIUtils):
             logger.error(f"Error getting process output: {e}")
             return {"stdout": "", "stderr": ""}
 
-    @keyword
     def is_process_running(self, process: subprocess.Popen) -> bool:
         """
         Check if a process is still running.
@@ -811,7 +802,6 @@ class ROS2CLIClient(ROS2CLIUtils):
         """
         return process.poll() is None
 
-    @keyword
     def shutdown_process(self, process_name: str, force: bool = False) -> bool:
         """
         Shutdown a process by name.
@@ -852,7 +842,6 @@ class ROS2CLIClient(ROS2CLIUtils):
             logger.error(f"Failed to shutdown process {process_name}: {e}")
             return False
 
-    @keyword
     def pkill_process(self, process_name: str, force: bool = False) -> bool:
         """
         Shutdown a process by name.
