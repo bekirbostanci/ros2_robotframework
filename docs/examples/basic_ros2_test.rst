@@ -265,4 +265,4 @@ After running this example, you can:
 
 - Explore the :doc:`ros2_native_functions` example for advanced native operations
 - Check the :doc:`nav2_basic_test` example for Navigation2 features
-- Read the :doc:`../user_guide/overview` for detailed usage information
+- Read the :doc:`../api/ros2_client` for detailed usage information

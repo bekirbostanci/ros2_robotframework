@@ -218,4 +218,4 @@ After successful installation, you can:
 
 - Read the :doc:`quickstart` guide to get started
 - Explore the :doc:`examples/index` for practical examples
-- Check the :doc:`user_guide/overview` for detailed usage information
+- Check the :doc:`api/ros2_client` for detailed usage information

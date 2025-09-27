@@ -301,6 +301,5 @@ Next Steps
 Now that you have the basics, you can:
 
 - Explore the :doc:`examples/index` for more complex examples
-- Read the :doc:`user_guide/overview` for detailed usage information
 - Check the :doc:`api/ros2_client` for complete API reference
-- Learn about :doc:`user_guide/nav2_operations` for Navigation2 features
+- Learn about :doc:`api/nav2_client` for Navigation2 features

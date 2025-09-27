@@ -20,89 +20,24 @@ A comprehensive Robot Framework library for testing and automating ROS2 applicat
 
 .. toctree::
    :maxdepth: 2
-   :caption: User Guide
-
-   user_guide/overview
-   user_guide/ros2_operations
-   user_guide/nav2_operations
-   user_guide/advanced_usage
-   user_guide/best_practices
-   user_guide/troubleshooting
-
-.. toctree::
-   :maxdepth: 2
    :caption: API Reference
 
    api/ros2_client
    api/nav2_client
-   api/cli_client
-   api/native_client
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Development
-
-   development/contributing
-   development/changelog
-   development/roadmap
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Additional Info
-
-   license
-   about
 
 What is Robot Framework?
 ========================
 
 **Robot Framework** is an open-source automation framework that uses keyword-driven testing with simple, readable syntax. It's perfect for ROS2 because:
 
-.. panels::
-   :container: +full-width text-center
-   :column: col-lg-4 col-md-6 col-sm-12
+**Key Features:**
 
-   .. panel::
-      :body:
-
-      **🔧 Keyword-Driven**
-      
-      Complex ROS2 operations become simple keywords (`Navigate To Pose`, `Wait For Topic`)
-
-   .. panel::
-      :body:
-
-      **📊 Rich Reporting**
-      
-      Built-in HTML reports with detailed logs for debugging
-
-   .. panel::
-      :body:
-
-      **🔄 CI/CD Ready**
-      
-      Seamlessly integrates with automated testing pipelines
-
-   .. panel::
-      :body:
-
-      **👥 Accessible**
-      
-      Non-programmers can write and understand test cases
-
-   .. panel::
-      :body:
-
-      **🧪 System Testing**
-      
-      Ideal for testing complex multi-node ROS2 systems
-
-   .. panel::
-      :body:
-
-      **📚 Learn More**
-      
-      `Robot Framework Documentation <https://robotframework.org/>`_
+- **🔧 Keyword-Driven**: Complex ROS2 operations become simple keywords (`Navigate To Pose`, `Wait For Topic`)
+- **📊 Rich Reporting**: Built-in HTML reports with detailed logs for debugging  
+- **🔄 CI/CD Ready**: Seamlessly integrates with automated testing pipelines
+- **👥 Accessible**: Non-programmers can write and understand test cases
+- **🧪 System Testing**: Ideal for testing complex multi-node ROS2 systems
+- **📚 Learn More**: `Robot Framework Documentation <https://robotframework.org/>`_
 
 Key Features
 ============
@@ -181,44 +116,13 @@ This library has been extensively tested with Navigation2 applications. For test
 
 **Test Repository**: `navigation2_ignition_gazebo_turtlebot3 <https://github.com/Onicc/navigation2_ignition_gazebo_turtlebot3>`_
 
-.. panels::
-   :container: +full-width text-center
-   :column: col-lg-3 col-md-6 col-sm-12
+**Tested Features:**
 
-   .. panel::
-      :body:
-
-      ✅ **Basic Navigation**
-      
-      Point-to-point navigation tasks
-
-   .. panel::
-      :body:
-
-      ✅ **Obstacle Avoidance**
-      
-      Dynamic obstacle detection and avoidance
-
-   .. panel::
-      :body:
-
-      ✅ **Path Planning**
-      
-      Global and local path planning algorithms
-
-   .. panel::
-      :body:
-
-      ✅ **Recovery Behaviors**
-      
-      Navigation recovery and error handling
-
-   .. panel::
-      :body:
-
-      ✅ **Multi-robot Scenarios**
-      
-      Testing with multiple robot instances
+- ✅ **Basic Navigation**: Point-to-point navigation tasks
+- ✅ **Obstacle Avoidance**: Dynamic obstacle detection and avoidance  
+- ✅ **Path Planning**: Global and local path planning algorithms
+- ✅ **Recovery Behaviors**: Navigation recovery and error handling
+- ✅ **Multi-robot Scenarios**: Testing with multiple robot instances
 
 .. note::
    While extensively tested with this specific repository, the library is designed to work with **any ROS2 project** and can be used with any ROS2-based robotic system, including custom robots, different navigation stacks, and various simulation environments.

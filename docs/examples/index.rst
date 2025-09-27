@@ -155,4 +155,4 @@ If you have an interesting example that demonstrates the library's capabilities,
 3. Test your example thoroughly
 4. Submit a pull request
 
-For more information, see the :doc:`../development/contributing` guide.
+For more information, see the :doc:`../api/ros2_client` API reference.

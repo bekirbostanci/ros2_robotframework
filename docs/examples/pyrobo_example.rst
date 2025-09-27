@@ -355,5 +355,5 @@ After running this example, you can:
 
 - Explore the :doc:`nav2_simple_monitoring` example for Navigation2 testing
 - Check the :doc:`nav2_turtlebot` example for TurtleBot3 integration
-- Read the :doc:`../user_guide/overview` for detailed usage information
+- Read the :doc:`../api/ros2_client` for detailed usage information
 - Review the :doc:`../api/ros2_client` for complete API reference

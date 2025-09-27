@@ -153,6 +153,20 @@ ogp_type = "website"
 copybutton_prompt_text = r">>> |\.\.\. |\$ |In \[\d*\]: | {2,5}\.\.\.: | {5,8}: "
 copybutton_prompt_is_regexp = True
 
+# Add Robot Framework syntax highlighting
+from pygments.lexers import get_lexer_by_name
+from sphinx.highlighting import lexers
+
+# Register Robot Framework lexer
+try:
+    robot_lexer = get_lexer_by_name('robot')
+    lexers['robot'] = robot_lexer
+except:
+    # Fallback to text if robot lexer is not available
+    from pygments.lexers import get_lexer_by_name
+    text_lexer = get_lexer_by_name('text')
+    lexers['robot'] = text_lexer
+
 # Todo extension settings
 todo_include_todos = True
 

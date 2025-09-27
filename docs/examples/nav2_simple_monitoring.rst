@@ -256,5 +256,5 @@ After running this example, you can:
 
 - Explore the :doc:`nav2_turtlebot` example for complete TurtleBot3 testing
 - Check the :doc:`pyrobo_example` example for PyRoboSim integration
-- Read the :doc:`../user_guide/nav2_operations` for detailed Navigation2 usage
+- Read the :doc:`../api/nav2_client` for detailed Navigation2 usage
 - Review the :doc:`../api/nav2_client` for complete API reference
