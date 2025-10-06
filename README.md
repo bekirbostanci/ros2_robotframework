@@ -2,7 +2,7 @@
 
 A comprehensive Robot Framework library for testing and automating ROS2 applications.
 
-![Test Animation](https://github.com/bekirbostanci/ros2_robotframework/raw/main/docs/test.gif)
+![Test Animation](https://github.com/bekirbostanci/ros2_robotframework/raw/main/docs/images/test.gif)
 
 ## What is Robot Framework?
 
@@ -201,4 +201,4 @@ The library has been validated with:
 
 Here's an example of the test output and monitoring capabilities:
 
-![Test Report](https://github.com/bekirbostanci/ros2_robotframework/raw/main/docs/output_report.png)
+![Test Report](https://github.com/bekirbostanci/ros2_robotframework/raw/main/docs/images/output_report.png)
