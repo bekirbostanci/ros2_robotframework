@@ -6,8 +6,8 @@ Complete API documentation for the ROS2 RobotFramework libraries with detailed k
 
 The ROS2 RobotFramework provides two comprehensive libraries:
 
-**ROS2ClientLibrary** - General ROS2 Operations
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ROS2 Client Library
+~~~~~~~~~~~~~~~~~~~~
 
 Complete ROS2 functionality including:
 - **Topic Operations**: Publish, subscribe, monitor, discover topics
@@ -19,8 +19,8 @@ Complete ROS2 functionality including:
 - **Transform Operations**: TF2 transform operations
 - **Utility Operations**: System health checks and cleanup
 
-**Nav2ClientLibrary** - Navigation2 Operations
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Nav2 Client Library
+~~~~~~~~~~~~~~~~~~~~
 
 Specialized Navigation2 functionality including:
 - **Navigation Operations**: Navigate to poses, multi-pose navigation

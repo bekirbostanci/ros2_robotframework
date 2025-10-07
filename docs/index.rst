@@ -1,4 +1,4 @@
-Welcome to ROS2 RobotFramework
+ROS2 RobotFramework
 ==============================
 
 A simple Robot Framework library for testing ROS2 applications.
@@ -38,12 +38,21 @@ Simple Example
        ${topics}=    List Topics
        Log    Available topics: ${topics}
 
+GitHub Repository
+-----------------
+
+The source code and latest updates are available on GitHub:
+
+`https://github.com/bekirbostanci/ros2_robotframework <https://github.com/bekirbostanci/ros2_robotframework>`_
+
 Documentation
 -------------
 
 .. toctree::
    :maxdepth: 3
 
+   index
+   concept
    installation
    quickstart
    examples/index
