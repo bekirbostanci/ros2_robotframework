@@ -6,7 +6,7 @@ A comprehensive Robot Framework library for testing and automating ROS2 applicat
 
 ## Documentation
 
-** [Full Documentation](https://ros2-robotframework.readthedocs.io/main/)** - Complete API reference, examples, and guides
+**[Full Documentation](https://ros2-robotframework.readthedocs.io/main/)** - Complete API reference, examples, and guides
 
 ## What is Robot Framework?
 
@@ -135,4 +135,5 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ---
 
-**📖 For complete documentation, examples, and API reference, visit: [https://ros2-robotframework.readthedocs.io/main/](https://ros2-robotframework.readthedocs.io/main/)**
+**📚 Full documentation and examples:**  
+[https://ros2-robotframework.readthedocs.io/main/](https://ros2-robotframework.readthedocs.io/main/)

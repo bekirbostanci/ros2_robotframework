@@ -4,11 +4,6 @@ API Reference
 Complete API documentation for the ROS2 RobotFramework libraries with detailed keyword explanations and examples.
 
 
-   nav2_client
-
-
-   <h2>Overview</h2>
-
 The ROS2 RobotFramework provides two comprehensive libraries:
 
 **ROS2ClientLibrary** - General ROS2 Operations
