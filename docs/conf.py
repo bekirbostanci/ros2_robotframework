@@ -129,12 +129,4 @@ epub_publisher = author
 epub_copyright = copyright
 epub_exclude_files = ['search.html']
 
-# -- Extension configuration -------------------------------------------------
-
-# ReadTheDocs detection
-tags = set()
-if os.environ.get('READTHEDOCS', None) == 'True':
-    tags.add('rtd')
-else:
-    tags.add('not_rtd')
 
