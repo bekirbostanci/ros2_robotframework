@@ -30,3 +30,27 @@ body {
         padding: 1rem;
     }
 }
+
+/* GitHub link in footer */
+.rst-footer-buttons {
+    text-align: center;
+    margin-top: 2rem;
+    padding: 1rem;
+    border-top: 1px solid #eee;
+}
+
+.rst-footer-buttons a {
+    display: inline-block;
+    margin: 0 1rem;
+    padding: 0.5rem 1rem;
+    background-color: #24292e;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.rst-footer-buttons a:hover {
+    background-color: #0366d6;
+    color: white;
+}
