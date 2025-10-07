@@ -13,7 +13,7 @@ Prerequisites
 Installation
 ------------
 
-**From Source (Recommended)**
+**From Source**
 
 .. code-block:: bash
 
@@ -24,7 +24,7 @@ Installation
    # Install in development mode
    pip install -e .
 
-**From PyPI (when available)**
+**From PyPI**
 
 .. code-block:: bash
 
