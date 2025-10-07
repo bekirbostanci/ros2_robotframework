@@ -1,5 +1,5 @@
-PyRoboSim Example
-=================
+PyRoboSim
+=========
 
 This example demonstrates PyRoboSim integration using the ROS2ClientLibrary.
 

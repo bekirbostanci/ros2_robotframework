@@ -1,408 +1,445 @@
-Nav2ClientLibrary
-=================
+Navigation2 Client Library
+=========================
 
-The main Navigation2 client that combines CLI and native operations for RobotFramework testing.
+The Nav2ClientLibrary provides comprehensive Navigation2 operations for Robot Framework testing.
 
 Overview
 --------
 
-The `Nav2ClientLibrary` is the primary client for Navigation2 operations. It provides a unified interface that automatically uses the most appropriate method (CLI or native) for each operation.
+The Nav2ClientLibrary is the main library for Navigation2 operations. It combines CLI and native operations to provide the best performance and reliability for navigation tasks.
 
-Initialization
---------------
+Key Features:
+- Navigation operations (navigate to pose, navigate through poses)
+- Path planning operations (global and local planners)
+- Localization operations (AMCL, initial pose)
+- Costmap operations (global and local costmaps)
+- Recovery operations (recovery behaviors)
+- Monitoring operations (navigation status, pose tracking)
+- Utility operations (cleanup, info, validation)
+
+Usage
+-----
 
 .. code-block:: robot
 
    *** Settings ***
-   Library    Nav2ClientLibrary    timeout=30.0    action_timeout=60.0    use_native=True    node_name=robotframework_nav2
+   Library    Nav2ClientLibrary    timeout=30.0    action_timeout=60.0    node_name=test_nav2
 
-Parameters
-~~~~~~~~~~
+   *** Test Cases ***
+   Test Navigation
+       Set Initial Pose    x=0.0    y=0.0    yaw=0.0
+       ${result}=    Navigate To Pose    x=1.0    y=2.0    yaw=0.0
+       Should Be True    ${result.success}
 
-- **timeout** (float, optional): Default timeout for operations in seconds (default: 30.0)
-- **action_timeout** (float, optional): Default timeout for navigation actions in seconds (default: 60.0)
-- **use_native** (bool, optional): Whether to use native operations when available (default: True)
-- **node_name** (str, optional): Name for the native ROS2 node (default: "robotframework_nav2")
+Initialization
+--------------
+
+Nav2ClientLibrary
+~~~~~~~~~~~~~~~~~
+
+.. autoclass:: nav2_client.nav2_client.Nav2ClientLibrary
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+The main Navigation2 client that combines CLI and native operations for Robot Framework testing.
+
+**Keyword: Initialize Nav2 Client**
+
+.. code-block:: robot
+
+   *** Settings ***
+   Library    Nav2ClientLibrary    timeout=30.0    action_timeout=60.0    node_name=test_nav2
 
 Navigation Operations
-=====================
+--------------------
 
-.. py:method:: navigate_to_pose_simple(x, y, theta, frame_id="map", timeout=None)
+**Keyword: Navigate To Pose**
 
-   Simple navigation to a pose using Navigation2 action server.
+Navigates the robot to a specific pose.
 
-   **Parameters:**
-   - **x** (float): X coordinate in meters
-   - **y** (float): Y coordinate in meters
-   - **theta** (float): Orientation in radians
-   - **frame_id** (str): Reference frame (default: "map")
-   - **timeout** (float, optional): Override default timeout
+.. code-block:: robot
 
-   **Returns:** True if navigation command was sent successfully
+   ${result}=    Navigate To Pose    x=1.0    y=2.0    yaw=0.0
 
-   **Example:**
-   .. code-block:: robot
+**Keyword: Navigate Through Poses**
 
-      ${success}=    Navigate To Pose Simple    2.0    1.0    1.57
-      Should Be True    ${success}
+Navigates the robot through a sequence of poses.
 
-.. py:method:: cancel_navigation(timeout=None)
+.. code-block:: robot
 
-   Cancel the current navigation operation.
+   ${poses}=    Create List    ${pose1}    ${pose2}    ${pose3}
+   ${result}=    Navigate Through Poses    ${poses}
 
-   **Parameters:**
-   - **timeout** (float, optional): Override default timeout
+**Keyword: Cancel Navigation**
 
-   **Returns:** True if cancellation was successful
+Cancels the current navigation operation.
 
-   **Example:**
-   .. code-block:: robot
+.. code-block:: robot
 
-      ${cancelled}=    Cancel Navigation
-      Should Be True    ${cancelled}
+   Cancel Navigation
 
-.. py:method:: is_navigation_active()
+**Keyword: Is Navigation Active**
 
-   Check if navigation is currently active.
+Checks if navigation is currently active.
 
-   **Returns:** True if navigation is active, False otherwise
+.. code-block:: robot
 
-   **Example:**
-   .. code-block:: robot
+   ${active}=    Is Navigation Active
 
-      ${active}=    Is Navigation Active
-      Should Be False    ${active}
+**Keyword: Get Navigation Result**
 
-Pose and Localization Operations
-=================================
+Gets the result of the last navigation operation.
 
-.. py:method:: get_current_pose(timeout=None)
+.. code-block:: robot
 
-   Get the current robot pose from the localization system.
-
-   **Parameters:**
-   - **timeout** (float, optional): Override default timeout
-
-   **Returns:** Current pose as Pose object, or None if unavailable
-
-   **Example:**
-   .. code-block:: robot
-
-      ${pose}=    Get Current Pose
-      Should Not Be None    ${pose}
-      Log    Current position: x=${pose.x}, y=${pose.y}
-
-.. py:method:: set_initial_pose(x, y, theta, frame_id="map", timeout=None)
-
-   Set the initial pose for the robot (for localization).
-
-   **Parameters:**
-   - **x** (float): X coordinate in meters
-   - **y** (float): Y coordinate in meters
-   - **theta** (float): Orientation in radians
-   - **frame_id** (str): Reference frame (default: "map")
-   - **timeout** (float, optional): Override default timeout
-
-   **Returns:** True if initial pose was set successfully
-
-   **Example:**
-   .. code-block:: robot
-
-      ${success}=    Set Initial Pose    0.0    0.0    0.0
-      Should Be True    ${success}
-
-.. py:method:: set_initial_pose_simple(x, y, theta, timeout=None)
-
-   Set the initial pose for the robot using a simpler approach.
-
-   **Parameters:**
-   - **x** (float): X coordinate in meters
-   - **y** (float): Y coordinate in meters
-   - **theta** (float): Orientation in radians
-   - **timeout** (float, optional): Override default timeout
-
-   **Returns:** True if initial pose was set successfully
-
-   **Example:**
-   .. code-block:: robot
-
-      ${success}=    Set Initial Pose Simple    0.0    0.0    0.0
-      Should Be True    ${success}
-
-.. py:method:: wait_for_localization(timeout=30.0, check_interval=1.0)
-
-   Wait for the robot to be localized (AMCL to converge).
-
-   **Parameters:**
-   - **timeout** (float): Maximum time to wait in seconds (default: 30.0)
-   - **check_interval** (float): Time between checks in seconds (default: 1.0)
-
-   **Returns:** True if localization converged within timeout
-
-   **Example:**
-   .. code-block:: robot
-
-      ${localized}=    Wait For Localization    timeout=60.0
-      Should Be True    ${localized}
+   ${result}=    Get Navigation Result
 
 Path Planning Operations
-========================
+------------------------
 
-.. py:method:: compute_path(start_x, start_y, start_theta, goal_x, goal_y, goal_theta, frame_id="map", timeout=None)
+**Keyword: Plan Path**
 
-   Compute a path from start to goal pose using Navigation2.
+Plans a path from start to goal pose.
 
-   **Parameters:**
-   - **start_x** (float): Start X coordinate in meters
-   - **start_y** (float): Start Y coordinate in meters
-   - **start_theta** (float): Start orientation in radians
-   - **goal_x** (float): Goal X coordinate in meters
-   - **goal_y** (float): Goal Y coordinate in meters
-   - **goal_theta** (float): Goal orientation in radians
-   - **frame_id** (str): Reference frame (default: "map")
-   - **timeout** (float, optional): Override default timeout
+.. code-block:: robot
 
-   **Returns:** List of waypoint dictionaries, or None if path planning failed
+   ${path}=    Plan Path    start_x=0.0    start_y=0.0    goal_x=2.0    goal_y=2.0
 
-   **Example:**
-   .. code-block:: robot
+**Keyword: Plan Global Path**
 
-      ${path}=    Compute Path    0.0    0.0    0.0    2.0    1.0    1.57
-      Should Not Be None    ${path}
-      Length Should Be Greater Than    ${path}    0
+Plans a global path using the global planner.
+
+.. code-block:: robot
+
+   ${path}=    Plan Global Path    start_x=0.0    start_y=0.0    goal_x=2.0    goal_y=2.0
+
+**Keyword: Plan Local Path**
+
+Plans a local path using the local planner.
+
+.. code-block:: robot
+
+   ${path}=    Plan Local Path    start_x=0.0    start_y=0.0    goal_x=2.0    goal_y=2.0
+
+**Keyword: Get Path Length**
+
+Gets the length of a planned path.
+
+.. code-block:: robot
+
+   ${length}=    Get Path Length    ${path}
+
+Localization Operations
+-----------------------
+
+**Keyword: Set Initial Pose**
+
+Sets the initial pose of the robot for localization.
+
+.. code-block:: robot
+
+   Set Initial Pose    x=0.0    y=0.0    yaw=0.0
+
+**Keyword: Get Current Pose**
+
+Gets the current pose of the robot.
+
+.. code-block:: robot
+
+   ${pose}=    Get Current Pose
+
+**Keyword: Wait For Localization**
+
+Waits for the robot to be localized.
+
+.. code-block:: robot
+
+   ${localized}=    Wait For Localization    timeout=10.0
+
+**Keyword: Is Localized**
+
+Checks if the robot is localized.
+
+.. code-block:: robot
+
+   ${localized}=    Is Localized
 
 Costmap Operations
-==================
+------------------
 
-.. py:method:: get_costmap_info(costmap_type="global", timeout=None)
+**Keyword: Clear Global Costmap**
 
-   Get information about the costmap.
+Clears the global costmap.
 
-   **Parameters:**
-   - **costmap_type** (str): Type of costmap ("global" or "local") (default: "global")
-   - **timeout** (float, optional): Override default timeout
+.. code-block:: robot
 
-   **Returns:** Dictionary containing costmap information
+   Clear Global Costmap
 
-   **Example:**
-   .. code-block:: robot
+**Keyword: Clear Local Costmap**
 
-      ${info}=    Get Costmap Info    global
-      Should Contain    ${info}    resolution
+Clears the local costmap.
 
-.. py:method:: clear_costmap(costmap_type="global", timeout=None)
+.. code-block:: robot
 
-   Clear the specified costmap.
+   Clear Local Costmap
 
-   **Parameters:**
-   - **costmap_type** (str): Type of costmap to clear ("global" or "local") (default: "global")
-   - **timeout** (float, optional): Override default timeout
+**Keyword: Get Global Costmap**
 
-   **Returns:** True if costmap was cleared successfully
+Gets the global costmap data.
 
-   **Example:**
-   .. code-block:: robot
+.. code-block:: robot
 
-      ${cleared}=    Clear Costmap    global
-      Should Be True    ${cleared}
+   ${costmap}=    Get Global Costmap
 
-Navigation2 Status Operations
-=============================
+**Keyword: Get Local Costmap**
 
-.. py:method:: get_navigation_status(timeout=None)
+Gets the local costmap data.
 
-   Get the current navigation status.
+.. code-block:: robot
 
-   **Parameters:**
-   - **timeout** (float, optional): Override default timeout
+   ${costmap}=    Get Local Costmap
 
-   **Returns:** Dictionary containing navigation status information
+**Keyword: Costmap Exists**
 
-   **Example:**
-   .. code-block:: robot
+Checks if a costmap exists.
 
-      ${status}=    Get Navigation Status
-      Log    Navigation active: ${status}[navigation_active]
+.. code-block:: robot
 
-Native-Specific Operations
-==========================
+   ${exists}=    Costmap Exists    global
 
-.. py:method:: navigate_to_pose_native(x, y, theta, frame_id="map", timeout=None)
+Recovery Operations
+-------------------
 
-   Navigate to a specific pose using native Navigation2 action client (native only).
+**Keyword: Start Recovery**
 
-   **Parameters:**
-   - **x** (float): X coordinate in meters
-   - **y** (float): Y coordinate in meters
-   - **theta** (float): Orientation in radians
-   - **frame_id** (str): Reference frame (default: "map")
-   - **timeout** (float, optional): Override default timeout
+Starts recovery behaviors.
 
-   **Returns:** NavigationResult object
+.. code-block:: robot
 
-   **Example:**
-   .. code-block:: robot
+   Start Recovery
 
-      ${result}=    Navigate To Pose Native    2.0    1.0    1.57
-      Should Be True    ${result.success}
+**Keyword: Stop Recovery**
 
-.. py:method:: navigate_through_poses(poses, frame_id="map", timeout=None)
+Stops recovery behaviors.
 
-   Navigate through a sequence of poses using native Navigation2 action client (native only).
+.. code-block:: robot
 
-   **Parameters:**
-   - **poses** (List[Dict[str, float]]): List of pose dictionaries
-   - **frame_id** (str): Reference frame (default: "map")
-   - **timeout** (float, optional): Override default timeout
+   Stop Recovery
 
-   **Returns:** NavigationResult object
+**Keyword: Is Recovery Active**
 
-   **Example:**
-   .. code-block:: robot
+Checks if recovery is active.
 
-      @{poses}=    Create List
-      ${pose1}=    Create Dictionary    x=1.0    y=0.0    theta=0.0
-      ${pose2}=    Create Dictionary    x=2.0    y=1.0    theta=1.57
-      Append To List    ${poses}    ${pose1}
-      Append To List    ${poses}    ${pose2}
-      ${result}=    Navigate Through Poses    ${poses}
-      Should Be True    ${result.success}
+.. code-block:: robot
 
-.. py:method:: get_current_pose_native(timeout=None)
+   ${active}=    Is Recovery Active
 
-   Get the current robot pose using native subscriber (native only).
+**Keyword: Get Recovery Result**
 
-   **Parameters:**
-   - **timeout** (float, optional): Override default timeout
+Gets the result of recovery operations.
 
-   **Returns:** Current pose as Pose object, or None if unavailable
+.. code-block:: robot
 
-   **Example:**
-   .. code-block:: robot
+   ${result}=    Get Recovery Result
 
-      ${pose}=    Get Current Pose Native
-      Should Not Be None    ${pose}
+Monitoring Operations
+--------------------
 
-.. py:method:: set_initial_pose_native(x, y, theta, frame_id="map", timeout=None)
+**Keyword: Monitor Navigation Status**
 
-   Set the initial pose using native publisher (native only).
+Monitors the navigation status.
 
-   **Parameters:**
-   - **x** (float): X coordinate in meters
-   - **y** (float): Y coordinate in meters
-   - **theta** (float): Orientation in radians
-   - **frame_id** (str): Reference frame (default: "map")
-   - **timeout** (float, optional): Override default timeout
+.. code-block:: robot
 
-   **Returns:** True if initial pose was set successfully
+   ${status}=    Monitor Navigation Status
 
-   **Example:**
-   .. code-block:: robot
+**Keyword: Monitor Pose**
 
-      ${success}=    Set Initial Pose Native    0.0    0.0    0.0
-      Should Be True    ${success}
+Monitors the robot's pose changes.
 
-.. py:method:: wait_for_localization_native(timeout=30.0, check_interval=1.0)
+.. code-block:: robot
 
-   Wait for localization using native subscriber (native only).
+   ${pose}=    Monitor Pose
 
-   **Parameters:**
-   - **timeout** (float): Maximum time to wait in seconds (default: 30.0)
-   - **check_interval** (float): Time between checks in seconds (default: 1.0)
+**Keyword: Monitor Costmap**
 
-   **Returns:** True if localization converged within timeout
+Monitors costmap changes.
 
-   **Example:**
-   .. code-block:: robot
+.. code-block:: robot
 
-      ${localized}=    Wait For Localization Native    timeout=60.0
-      Should Be True    ${localized}
+   ${costmap}=    Monitor Costmap    global
 
-.. py:method:: get_costmap_info_native(costmap_type="global", timeout=None)
+**Keyword: Get Navigation Info**
 
-   Get costmap information using native subscriber (native only).
+Gets comprehensive navigation information.
 
-   **Parameters:**
-   - **costmap_type** (str): Type of costmap ("global" or "local") (default: "global")
-   - **timeout** (float, optional): Override default timeout
+.. code-block:: robot
 
-   **Returns:** Dictionary containing costmap information
+   ${info}=    Get Navigation Info
 
-   **Example:**
-   .. code-block:: robot
+Utility Operations
+------------------
 
-      ${info}=    Get Costmap Info Native    global
-      Should Contain    ${info}    resolution
+**Keyword: Cleanup**
 
-.. py:method:: clear_costmap_native(costmap_type="global", timeout=None)
+Cleans up resources and connections.
 
-   Clear costmap using native service client (native only).
+.. code-block:: robot
 
-   **Parameters:**
-   - **costmap_type** (str): Type of costmap to clear ("global" or "local") (default: "global")
-   - **timeout** (float, optional): Override default timeout
+   Cleanup
 
-   **Returns:** True if costmap was cleared successfully
+**Keyword: Get System Info**
 
-   **Example:**
-   .. code-block:: robot
+Gets system information.
 
-      ${cleared}=    Clear Costmap Native    global
-      Should Be True    ${cleared}
+.. code-block:: robot
 
-.. py:method:: wait_for_nav2_ready(timeout=60.0, check_interval=2.0)
+   ${info}=    Get System Info
 
-   Wait for Navigation2 to be ready using native clients (native only).
+**Keyword: Validate Navigation Setup**
 
-   **Parameters:**
-   - **timeout** (float): Maximum time to wait in seconds (default: 60.0)
-   - **check_interval** (float): Time between checks in seconds (default: 2.0)
+Validates the navigation setup.
 
-   **Returns:** True if Navigation2 is ready within timeout
+.. code-block:: robot
 
-   **Example:**
-   .. code-block:: robot
+   ${valid}=    Validate Navigation Setup
 
-      ${ready}=    Wait For Nav2 Ready    timeout=120.0
-      Should Be True    ${ready}
+Data Classes
+------------
 
-.. py:method:: get_navigation_status_native(timeout=None)
+Pose
+~~~~
 
-   Get navigation status using native clients (native only).
+Data class representing a 2D pose with position and orientation.
 
-   **Parameters:**
-   - **timeout** (float, optional): Override default timeout
+.. code-block:: robot
 
-   **Returns:** Dictionary containing navigation status information
+   ${pose}=    Create Pose    x=1.0    y=2.0    yaw=0.0
 
-   **Example:**
-   .. code-block:: robot
+NavigationResult
+~~~~~~~~~~~~~~~~
 
-      ${status}=    Get Navigation Status Native
-      Log    Navigation active: ${status}[navigation_active]
+Data class representing the result of a navigation operation.
 
-Utility Methods
-===============
+.. code-block:: robot
 
-.. py:method:: cleanup()
+   ${result}=    Create Navigation Result    success=True    message=Success
 
-   Clean up all resources.
+Navigation Message Types
+------------------------
 
-   **Example:**
-   .. code-block:: robot
+The Navigation2 client library works with standard Navigation2 message types:
 
-      Cleanup
+- **geometry_msgs/msg/PoseStamped** - Pose with timestamp and frame
+- **geometry_msgs/msg/PoseWithCovarianceStamped** - Pose with covariance
+- **nav2_msgs/action/NavigateToPose** - Navigation action goals
+- **nav2_msgs/action/NavigateThroughPoses** - Multi-pose navigation
+- **geometry_msgs/msg/Twist** - Velocity commands for navigation
 
-.. py:method:: get_client_info()
+Service Types
+-------------
 
-   Get information about the current client configuration.
+Common service types used with Navigation2:
 
-   **Returns:** Dictionary containing client configuration information
+- **std_srvs/srv/Empty** - Empty service requests (costmap clearing)
+- **nav2_msgs/srv/GetCostmap** - Costmap retrieval
+- **nav2_msgs/srv/SetInitialPose** - Initial pose setting
 
-   **Example:**
-   .. code-block:: robot
+Action Types
+------------
 
-      ${info}=    Get Client Info
-      Log    Native available: ${info['native_available']}
-      Log    Timeout: ${info['timeout']}
-      Log    Action timeout: ${info['action_timeout']}
+Navigation2 action types for navigation and control:
+
+- **nav2_msgs/action/NavigateToPose** - Single pose navigation
+- **nav2_msgs/action/NavigateThroughPoses** - Multi-pose navigation
+- **nav2_msgs/action/ComputePathToPose** - Path planning actions
+
+Example Usage
+-------------
+
+Basic Navigation Test
+~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: robot
+
+   *** Settings ***
+   Library    Nav2ClientLibrary    timeout=30.0    action_timeout=60.0    node_name=test_nav2
+
+   *** Test Cases ***
+   Test Basic Navigation
+       Set Initial Pose    x=0.0    y=0.0    yaw=0.0
+       ${result}=    Navigate To Pose    x=1.0    y=2.0    yaw=0.0
+       Should Be True    ${result.success}
+
+   Test Pose Operations
+       ${pose}=    Get Current Pose
+       Should Not Be Empty    ${pose}
+       ${localized}=    Is Localized
+       Should Be True    ${localized}
+
+   Test Costmap Operations
+       Clear Global Costmap
+       Clear Local Costmap
+       ${costmap}=    Get Global Costmap
+       Should Not Be Empty    ${costmap}
+
+Advanced Navigation Test
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: robot
+
+   *** Test Cases ***
+   Test Multi-Pose Navigation
+       ${pose1}=    Create Pose    x=1.0    y=1.0    yaw=0.0
+       ${pose2}=    Create Pose    x=2.0    y=2.0    yaw=1.57
+       ${poses}=    Create List    ${pose1}    ${pose2}
+       ${result}=    Navigate Through Poses    ${poses}
+       Should Be True    ${result.success}
+
+   Test Path Planning
+       ${path}=    Plan Path    start_x=0.0    start_y=0.0    goal_x=3.0    goal_y=3.0
+       Should Not Be Empty    ${path}
+       ${length}=    Get Path Length    ${path}
+       Should Be True    ${length} > 0
+
+   Test Recovery Operations
+       Start Recovery
+       ${active}=    Is Recovery Active
+       Should Be True    ${active}
+       Stop Recovery
+
+   Test Navigation Monitoring
+       ${status}=    Monitor Navigation Status
+       Should Not Be Empty    ${status}
+       ${info}=    Get Navigation Info
+       Should Not Be Empty    ${info}
+
+Complex Navigation Scenario
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: robot
+
+   *** Test Cases ***
+   Test Complete Navigation Workflow
+       # Setup
+       Set Initial Pose    x=0.0    y=0.0    yaw=0.0
+       ${localized}=    Wait For Localization    timeout=10.0
+       Should Be True    ${localized}
+
+       # Navigation
+       ${result}=    Navigate To Pose    x=1.0    y=1.0    yaw=0.0
+       Should Be True    ${result.success}
+
+       # Verify position
+       ${pose}=    Get Current Pose
+       Should Not Be Empty    ${pose}
+
+       # Test recovery if needed
+       ${active}=    Is Recovery Active
+       IF    ${active}
+           Stop Recovery
+       END
+
+       # Cleanup
+       Cleanup

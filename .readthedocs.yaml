@@ -1,0 +1,40 @@
+# .readthedocs.yaml
+# Read the Docs configuration file
+# See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
+
+# Required
+version: 2
+
+# Build configuration
+build:
+  os: ubuntu-22.04
+  tools:
+    python: "3.11"
+  jobs:
+    post_install:
+      # Install core dependencies needed for the package to be importable
+      - pip install --upgrade robotframework>=6.0.0 PyYAML>=6.0 numpy typing-extensions
+      # Install the package for documentation generation (without ROS2 deps)
+      - pip install --no-deps -e .
+
+# Build documentation in the docs/ directory with Sphinx
+sphinx:
+  configuration: docs/conf.py
+
+# Install Python dependencies for documentation building
+python:
+  install:
+    - requirements: docs/requirements.txt
+
+# Optionally set the version of Node.js and install requirements
+# build:
+#   os: ubuntu-22.04
+#   tools:
+#     nodejs: "19"
+#
+# python:
+#   install:
+#     - requirements: docs/requirements.txt
+#     - method: pip
+#       path: .
+#   system_packages: true

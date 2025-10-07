@@ -6,7 +6,7 @@
 SPHINXOPTS    ?=
 SPHINXBUILD   ?= sphinx-build
 SOURCEDIR     = .
-BUILDDIR      = _build
+BUILDDIR      = build
 
 # Put it first so that "make" without argument is like "make help".
 help:
@@ -18,24 +18,3 @@ help:
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
 %: Makefile
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
-
-# Custom targets for documentation
-clean:
-	rm -rf $(BUILDDIR)/*
-	rm -rf _static/*
-	rm -rf _templates/*
-
-install:
-	pip install -r requirements.txt
-
-build:
-	@$(SPHINXBUILD) -M html "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
-
-serve:
-	cd $(BUILDDIR)/html && python3 -m http.server 8000
-
-deploy:
-	@echo "Building documentation..."
-	@$(SPHINXBUILD) -M html "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
-	@echo "Documentation built successfully!"
-	@echo "You can view it at: $(BUILDDIR)/html/index.html"
