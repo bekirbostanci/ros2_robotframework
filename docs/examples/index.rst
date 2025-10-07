@@ -3,32 +3,16 @@ Examples
 
 Practical examples for using ROS2 RobotFramework.
 
-Basic Examples
---------------
-
-Simple examples to get started:
-
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
-   basic_ros2_test
-   ros2_native_functions
-   nav2_basic_test
+   ros2/index
+   nav2/index
+   others/index
 
-Advanced Examples
------------------
+.. raw:: html
 
-More complex scenarios:
-
-.. toctree::
-   :maxdepth: 1
-
-   nav2_simple_monitoring
-   nav2_turtlebot
-   pyrobo_example
-
-Running Examples
-----------------
+   <h2>Running Examples</h2>
 
 Run any example with:
 
@@ -43,8 +27,9 @@ Run any example with:
    # Generate detailed report
    robot --outputdir results examples/basics/ros2_basic_test.robot
 
-Example Structure
------------------
+.. raw:: html
+
+   <h2>Example Structure</h2>
 
 All examples follow this structure:
 

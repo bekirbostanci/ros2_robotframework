@@ -87,10 +87,10 @@ html_css_files = ['css/custom.css']
 html_theme_options = {
     'display_version': True,
     'prev_next_buttons_location': 'bottom',
-    'collapse_navigation': False,
+    'collapse_navigation': True,
     'sticky_navigation': True,
-    'navigation_depth': 2,
-    'includehidden': True,
+    'navigation_depth': 3,
+    'includehidden': False,
     'titles_only': False
 }
 

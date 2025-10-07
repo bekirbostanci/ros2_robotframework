@@ -67,11 +67,15 @@ tasks:
       - "cd docs && make html"
       - "echo 'Documentation built in docs/_build/html/'"
 
-  docs-serve:
-    desc: "Serve documentation locally"
+  docs-build:
+    desc: "Build documentation with API reference"
     cmds:
-      - "cd docs && make serve"
-      - "echo 'Documentation available at http://localhost:8000'"
+      - "cd docs && make clean"
+      - "cd docs && make html"
+      - "echo 'Documentation with API reference built in docs/_build/html/'"
+      - "echo 'Open docs/_build/html/index.html to view the documentation'"
+
+
 
   docs-clean:
     desc: "Clean documentation build artifacts"
@@ -83,11 +87,10 @@ tasks:
 
   # Combined documentation workflow
   docs:
-    desc: "Full documentation workflow (install, build, serve)"
+    desc: "Full documentation workflow (install, build)"
     cmds:
       - task: docs-install
       - task: docs-build
-      - task: docs-serve
 
   # Development workflow
   dev:

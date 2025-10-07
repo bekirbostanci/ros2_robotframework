@@ -42,20 +42,10 @@ Documentation
 -------------
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 3
 
    installation
    quickstart
    examples/index
    api/index
-   about
-   license
-
-API Reference
--------------
-
-Complete API documentation for both libraries:
-
-- :doc:`api/ros2_client` - ROS2 Client Library (Topics, Services, Actions, Nodes, Parameters)
-- :doc:`api/nav2_client` - Navigation2 Client Library (Navigation, Path Planning, Localization)
 

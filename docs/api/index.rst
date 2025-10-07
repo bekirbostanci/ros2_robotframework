@@ -3,17 +3,11 @@ API Reference
 
 Complete API documentation for the ROS2 RobotFramework libraries with detailed keyword explanations and examples.
 
-Libraries
----------
 
-.. toctree::
-   :maxdepth: 1
-
-   ros2_client
    nav2_client
 
-Overview
---------
+
+   <h2>Overview</h2>
 
 The ROS2 RobotFramework provides two comprehensive libraries:
 
@@ -41,8 +35,9 @@ Specialized Navigation2 functionality including:
 - **Recovery Operations**: Recovery behavior control
 - **Monitoring**: Navigation status and pose tracking
 
-Quick Start
------------
+.. raw:: html
+
+   <h2>Quick Start</h2>
 
 Import the libraries in your Robot Framework tests:
 
@@ -61,8 +56,9 @@ Import the libraries in your Robot Framework tests:
        ${result}=    Navigate To Pose    x=1.0    y=2.0    yaw=0.0
        Should Be True    ${result.success}
 
-Keyword Documentation
----------------------
+.. raw:: html
+
+   <h2>Keyword Documentation</h2>
 
 Each library page contains:
 

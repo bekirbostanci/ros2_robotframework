@@ -1,8 +1,12 @@
-# Robot Framework ROS2 Library
+# ROS2 RobotFramework
 
 A comprehensive Robot Framework library for testing and automating ROS2 applications.
 
 ![Test Animation](https://github.com/bekirbostanci/ros2_robotframework/raw/main/docs/images/test.gif)
+
+## Documentation
+
+** [Full Documentation](https://ros2-robotframework.readthedocs.io/main/)** - Complete API reference, examples, and guides
 
 ## What is Robot Framework?
 
@@ -16,7 +20,7 @@ A comprehensive Robot Framework library for testing and automating ROS2 applicat
 - **👥 Accessible**: Non-programmers can write and understand test cases
 - **🧪 System Testing**: Ideal for testing complex multi-node ROS2 systems
 
-## Features
+## Key Features
 
 ### Core ROS2 Operations
 - **Topic Operations**: List topics, get topic info, echo messages, publish messages, wait for topics
@@ -26,7 +30,7 @@ A comprehensive Robot Framework library for testing and automating ROS2 applicat
 - **Launch Operations**: Launch files and packages, find launch files, manage launch processes
 - **Run Operations**: Run nodes directly, run with remapping, find executables, manage node processes
 
-### Native ROS2 Python Node Operations (NEW!)
+### Native ROS2 Python Node Operations
 - **Native Topic Operations**: Direct publishing/subscribing using ROS2 Python nodes
 - **Native Service Operations**: Direct service calls using ROS2 Python service clients
 - **Native Parameter Operations**: Direct parameter access using ROS2 Python parameter clients
@@ -34,12 +38,13 @@ A comprehensive Robot Framework library for testing and automating ROS2 applicat
 - **Message Storage**: Automatic message buffering and retrieval
 - **Real-time Communication**: Low-latency, high-performance ROS2 communication
 
-### Advanced Features
-- **Process Management**: Start, monitor, and terminate ROS2 processes
-- **Discovery**: Find launch files and executables in packages
-- **Remapping**: Topic and service remapping for node execution
-- **Timeout Support**: Configurable timeouts for all operations
-- **Hybrid Mode**: Automatic fallback from native to CLI operations when needed
+### Navigation2 Support
+- **Navigation2 Client**: Complete Navigation2 client with native ROS2 operations
+- **Navigate to Pose**: Point-to-point navigation with action client
+- **Navigate Through Poses**: Multi-waypoint navigation
+- **Costmap Operations**: Global and local costmap clearing
+- **Pose Management**: Initial pose setting and AMCL pose monitoring
+- **Navigation Status**: Real-time navigation status monitoring
 
 ## Installation
 
@@ -97,45 +102,6 @@ Test Native ROS2 Operations
     Log    Received: ${message}[data]
 ```
 
-### Launch and Run Operations
-```robot
-*** Settings ***
-Library    ROS2ClientLibrary
-
-*** Test Cases ***
-Test Launch File
-    # Launch a ROS2 launch file
-    ${process}=    Launch Package    demo_nodes_cpp    talker_listener.launch.py
-    Should Not Be Equal    ${process}    ${None}
-    
-    # Wait for topics to appear
-    ${available}=    Wait For Topic    /chatter    timeout=10.0
-    Should Be True    ${available}
-    
-    # Echo some messages
-    ${messages}=    Echo Topic    /chatter    count=3
-    
-    # Clean up
-    ${terminated}=    Terminate Launch Process    ${process}
-    Should Be True    ${terminated}
-
-Test Run Node
-    # Run a node directly
-    ${process}=    Run Node    demo_nodes_cpp    talker
-    Should Not Be Equal    ${process}    ${None}
-    
-    # Wait for the node to start
-    Sleep    2s
-    
-    # Check if process is running
-    ${running}=    Is Process Running    ${process}
-    Should Be True    ${running}
-    
-    # Terminate the process
-    ${terminated}=    Terminate Node Process    ${process}
-    Should Be True    ${terminated}
-```
-
 ### Running Examples
 ```bash
 # Run the basic test
@@ -151,54 +117,22 @@ This library has been extensively tested with Navigation2 applications. For test
 
 **Test Repository**: [navigation2_ignition_gazebo_turtlebot3](https://github.com/Onicc/navigation2_ignition_gazebo_turtlebot3)
 
-### Test Coverage
-The library has been validated with:
-- ✅ **Basic Navigation**: Point-to-point navigation tasks
-- ✅ **Obstacle Avoidance**: Dynamic obstacle detection and avoidance
-- ✅ **Path Planning**: Global and local path planning algorithms
-- ✅ **Recovery Behaviors**: Navigation recovery and error handling
-- ✅ **Multi-robot Scenarios**: Testing with multiple robot instances
-
 > **Note**: While extensively tested with this specific repository, the library is designed to work with **any ROS2 project** and can be used with any ROS2-based robotic system, including custom robots, different navigation stacks, and various simulation environments.
-
-## Todo List
-
-### Completed Features
-
-#### ROS2 Core Features
-- [x] **Core ROS2 Operations**: Topic, service, node, parameter, launch, and run operations
-- [x] **Native ROS2 Python Node Operations**: Direct publishing/subscribing using ROS2 Python nodes
-- [x] **Native Service Operations**: Direct service calls using ROS2 Python service clients
-- [x] **Native Parameter Operations**: Direct parameter access using ROS2 Python parameter clients
-- [x] **Native TF2 Operations**: Direct transform operations using ROS2 Python TF2
-- [x] **Message Storage**: Automatic message buffering and retrieval
-- [x] **Process Management**: Start, monitor, and terminate ROS2 processes
-- [x] **Discovery**: Find launch files and executables in packages
-- [x] **Remapping**: Topic and service remapping for node execution
-- [x] **Timeout Support**: Configurable timeouts for all operations
-
-#### Navigation2 Features
-- [x] **Navigation2 Client**: Complete Navigation2 client with native ROS2 operations
-- [x] **Navigate to Pose**: Point-to-point navigation with action client
-- [x] **Navigate Through Poses**: Multi-waypoint navigation
-- [x] **Costmap Operations**: Global and local costmap clearing
-- [x] **Pose Management**: Initial pose setting and AMCL pose monitoring
-- [x] **Velocity Control**: Direct velocity command publishing
-- [x] **Navigation Status**: Real-time navigation status monitoring
-- [x] **Recovery Behaviors**: Navigation recovery and error handling
-- [x] **Multi-robot Support**: Testing with multiple robot instances
-
-### Planned Features
-- [ ] **Performance Monitoring**: Add built-in performance metrics and timing for operations
-- [ ] **Multi-robot Support**: Enhanced support for testing multiple robots simultaneously
-- [ ] **Custom Message Types**: Better support for custom ROS2 message types and validation
-- [ ] **Integration Testing**: Add comprehensive integration test suites
-- [ ] **Documentation**: Expand API documentation with more examples and use cases
-- [ ] **CI/CD Integration**: Add GitHub Actions workflows for automated testing
-- [ ] **Extending ROS2 Version Support**: Add compatibility for additional ROS2 distributions (e.g., Foxy, Galactic, Humble, Iron, Jazzy)
 
 ## Test Results
 
 Here's an example of the test output and monitoring capabilities:
 
 ![Test Report](https://github.com/bekirbostanci/ros2_robotframework/raw/main/docs/images/output_report.png)
+
+## License
+
+This project is licensed under the Apache License - see the [LICENSE](LICENSE) file for details.
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+---
+
+**📖 For complete documentation, examples, and API reference, visit: [https://ros2-robotframework.readthedocs.io/main/](https://ros2-robotframework.readthedocs.io/main/)**
